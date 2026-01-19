@@ -25,6 +25,7 @@ export async function addToList(
   productId: number,
   quantity: number,
 ) {
+  const baseUrl = config.baseUrl || 'https://www.ebag.bg';
   const body = new URLSearchParams({
     product_id: String(productId),
     quantity: String(quantity),
@@ -34,6 +35,8 @@ export async function addToList(
     method: 'POST',
     headers: {
       'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      origin: baseUrl,
+      referer: `${baseUrl}/search/`,
     },
     body,
   });

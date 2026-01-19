@@ -14,6 +14,17 @@ function normalizeHeaders(headers: Headers): Record<string, string> {
   return out;
 }
 
+function getCookieValue(cookies: string | undefined, name: string) {
+  if (!cookies) return undefined;
+  const parts = cookies.split(';').map((part) => part.trim());
+  for (const part of parts) {
+    if (part.startsWith(`${name}=`)) {
+      return part.slice(name.length + 1);
+    }
+  }
+  return undefined;
+}
+
 export async function requestEbag<T>(
   config: Config,
   session: Session,
@@ -42,9 +53,16 @@ export async function requestEbag<T>(
   if (session.cookies) {
     headers.cookie = session.cookies;
   }
+  const method = (options.method || 'GET').toUpperCase();
+  if (!headers['x-csrftoken'] && method !== 'GET') {
+    const token = getCookieValue(session.cookies, 'csrftoken');
+    if (token) {
+      headers['x-csrftoken'] = token;
+    }
+  }
 
   const response = await fetch(url.toString(), {
-    method: options.method || 'GET',
+    method,
     headers,
     body: options.body instanceof URLSearchParams ? options.body.toString() : options.body,
   });

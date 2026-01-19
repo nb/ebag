@@ -8,6 +8,7 @@ export async function addToCart(
   quantity: number,
   unitTypeOverride = 'false',
 ) {
+  const baseUrl = config.baseUrl || 'https://www.ebag.bg';
   const body = new URLSearchParams({
     product_id: String(productId),
     quantity: String(quantity),
@@ -18,6 +19,8 @@ export async function addToCart(
     method: 'POST',
     headers: {
       'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      origin: baseUrl,
+      referer: `${baseUrl}/search/`,
     },
     body,
   });
@@ -32,6 +35,7 @@ export async function updateCart(
   quantity: number,
   unitTypeOverride = 'false',
 ) {
+  const baseUrl = config.baseUrl || 'https://www.ebag.bg';
   const body = new URLSearchParams({
     product_id: String(productId),
     quantity: String(quantity),
@@ -42,6 +46,8 @@ export async function updateCart(
     method: 'POST',
     headers: {
       'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      origin: baseUrl,
+      referer: `${baseUrl}/search/`,
     },
     body,
   });

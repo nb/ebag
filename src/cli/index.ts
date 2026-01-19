@@ -15,6 +15,14 @@ function requireSessionCookie() {
   return session;
 }
 
+function formatError(err: unknown) {
+  const error = err as Error & { status?: number; body?: string };
+  const details: Record<string, unknown> = { message: error.message };
+  if (error.status) details.status = error.status;
+  if (error.body) details.body = error.body;
+  return details;
+}
+
 async function main() {
   const program = new Command();
 
@@ -48,10 +56,14 @@ async function main() {
 
       try {
         const user = await validateSession(config, session);
+        const email = (user as { email?: string; username?: string }).email || (user as { email?: string; username?: string }).username;
         if (json) {
-          outputJson({ status: 'ok', user });
+          outputJson({ status: 'ok', user, email });
         } else {
           process.stdout.write('Login session saved and validated.\n');
+          if (email) {
+            process.stdout.write(`Logged in as: ${email}\n`);
+          }
         }
       } catch (err) {
         if (json) {
@@ -59,6 +71,48 @@ async function main() {
         } else {
           process.stderr.write(`Login saved but validation failed: ${(err as Error).message}\n`);
         }
+      }
+    });
+
+  program
+    .command('status')
+    .description('Show current login status')
+    .action(async () => {
+      const config = loadConfig();
+      const json = program.opts().json as boolean | undefined;
+      const session = loadSession();
+
+      if (!session.cookies) {
+        if (json) {
+          outputJson({ status: 'logged_out' });
+        } else {
+          process.stdout.write('Logged out (no session cookie).\n');
+        }
+        return;
+      }
+
+      try {
+        const user = await validateSession(config, session);
+        const email = (user as { email?: string; username?: string }).email || (user as { email?: string; username?: string }).username;
+        if (json) {
+          outputJson({ status: 'logged_in', user, email });
+        } else {
+          process.stdout.write('Logged in.\n');
+          if (email) {
+            process.stdout.write(`Email: ${email}\n`);
+          }
+        }
+      } catch (err) {
+        const error = err as Error & { status?: number };
+        if (error.status && [401, 403].includes(error.status)) {
+          if (json) {
+            outputJson({ status: 'logged_out' });
+          } else {
+            process.stdout.write('Logged out.\n');
+          }
+          return;
+        }
+        throw err;
       }
     });
 
@@ -167,9 +221,16 @@ async function main() {
   } catch (err) {
     const json = program.opts().json as boolean | undefined;
     if (json) {
-      outputJson({ status: 'error', message: (err as Error).message });
+      outputJson({ status: 'error', ...formatError(err) });
     } else {
-      process.stderr.write(`${(err as Error).message}\n`);
+      const details = formatError(err);
+      process.stderr.write(`${details.message}\n`);
+      if (details.status) {
+        process.stderr.write(`Status: ${details.status}\n`);
+      }
+      if (details.body) {
+        process.stderr.write(`Body: ${details.body}\n`);
+      }
     }
     process.exit(1);
   }
