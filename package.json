@@ -1,0 +1,31 @@
+{
+  "name": "ebagcli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/lib/index.js",
+  "types": "dist/lib/index.d.ts",
+  "bin": {
+    "ebag": "dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "capture": "node scripts/capture.mjs",
+    "start": "node dist/cli/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "playwright": "^1.57.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "commander": "^14.0.2"
+  }
+}
