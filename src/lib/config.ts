@@ -17,6 +17,10 @@ function ensureDir(dir: string) {
 }
 
 export function getConfigDir() {
+  const override = process.env.EBAG_CONFIG_DIR;
+  if (override) {
+    return override;
+  }
   return path.join(os.homedir(), '.config', 'ebagcli');
 }
 
