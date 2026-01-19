@@ -50,8 +50,10 @@ function findCartItem(cart, productId) {
 }
 
 async function main() {
+  console.log('e2e: login');
   await runCli(['login', '--cookie', cookie]);
 
+  console.log('e2e: search bg');
   const searchBg = await runCli(['search', queryBg, '--limit', '5']);
   if (!searchBg.results || searchBg.results.length === 0) {
     throw new Error('Bulgarian search returned no results.');
@@ -62,11 +64,13 @@ async function main() {
     throw new Error('Missing product id from search.');
   }
 
+  console.log('e2e: search miss');
   const searchMiss = await runCli(['search', queryMiss, '--limit', '5']);
   if (!searchMiss.results || searchMiss.results.length !== 0) {
     throw new Error('Expected empty results for missing search query.');
   }
 
+  console.log('e2e: list ls');
   const lists = await runCli(['list', 'ls']);
   if (!Array.isArray(lists) || lists.length === 0) {
     throw new Error('No lists returned.');
@@ -77,14 +81,18 @@ async function main() {
     throw new Error('Missing list id.');
   }
 
+  console.log('e2e: cart add');
   await runCli(['cart', 'add', String(productId), '--qty', '1']);
+  console.log('e2e: cart validate add');
   const cartAfterAdd = await fetchJson('/cart/json');
   const added = findCartItem(cartAfterAdd, productId);
   if (!added) {
     throw new Error('Cart add did not include product.');
   }
 
+  console.log('e2e: cart update');
   await runCli(['cart', 'update', String(productId), '--qty', '2']);
+  console.log('e2e: cart validate update');
   const cartAfterUpdate = await fetchJson('/cart/json');
   const updated = findCartItem(cartAfterUpdate, productId);
   const updatedQty = updated?.quantity ?? updated?.qty ?? updated?.count;
@@ -92,7 +100,9 @@ async function main() {
     throw new Error('Cart update did not set quantity to 2.');
   }
 
+  console.log('e2e: list add');
   await runCli(['list', 'add', String(listId), String(productId), '--qty', '1']);
+  console.log('e2e: list validate add');
   const listsAfterAdd = await runCli(['list', 'ls']);
   const listAfterAdd = listsAfterAdd.find((list) => Number(list.id) === Number(listId));
   const listProductIds = (listAfterAdd?.products || []).map((item) => item.productId);
