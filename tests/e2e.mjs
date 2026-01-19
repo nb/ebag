@@ -52,6 +52,11 @@ function findCartItem(cart, productId) {
 async function main() {
   console.log('e2e: login');
   await runCli(['login', '--cookie', cookie]);
+  console.log('e2e: status');
+  const status = await runCli(['status']);
+  if (status.status !== 'logged_in') {
+    throw new Error('Expected logged_in status after login.');
+  }
 
   console.log('e2e: search bg');
   const searchBg = await runCli(['search', queryBg, '--limit', '5']);
