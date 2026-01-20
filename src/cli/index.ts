@@ -7,9 +7,11 @@ import { getLoginInstructions, validateSession } from '../lib/auth';
 import { normalizeCookieInput, validateCookieInput } from '../lib/cookies';
 import { loadConfig, loadSession, saveSession } from '../lib/config';
 import { getListItems, getLists, addToList } from '../lib/lists';
+import { getTimeSlots } from '../lib/orders';
 import { getProductById } from '../lib/products';
 import { searchProducts } from '../lib/search';
-import { outputJson, outputList, outputProducts, outputProductDetail } from './format';
+import { formatLoadPercent, formatSlotRange, normalizeSlots, sortSlots } from '../lib/slots';
+import { formatHeading, outputJson, outputList, outputProducts, outputProductDetail } from './format';
 
 function requireSessionCookie() {
   const session = loadSession();
@@ -137,6 +139,61 @@ async function main() {
           return;
         }
         throw err;
+      }
+    });
+
+  program
+    .command('slots')
+    .description('Show the next available delivery slots')
+    .option('--limit <n>', 'Limit number of slots', '10')
+    .option('--city <key>', 'City key')
+    .option('--address <id>', 'Address encrypted id')
+    .action(async (options) => {
+      const config = loadConfig();
+      const session = requireSessionCookie();
+      const json = program.opts().json as boolean | undefined;
+      const limit = Number(options.limit);
+
+      const slotsPayload = await getTimeSlots(config, session, {
+        cityKey: options.city as string | undefined,
+        addressEncryptedId: options.address as string | undefined,
+      });
+      const slots = normalizeSlots(slotsPayload).filter((slot) => slot.isAvailable);
+      slots.sort(sortSlots);
+      const limited = slots.slice(0, Number.isFinite(limit) ? limit : 10);
+
+      if (json) {
+        outputJson({ slots: limited });
+        return;
+      }
+      if (!limited.length) {
+        process.stdout.write('No available delivery slots.\n');
+        return;
+      }
+      const today = new Date();
+      const todayDate = today.toISOString().slice(0, 10);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      const tomorrowDate = tomorrow.toISOString().slice(0, 10);
+
+      let currentDate = '';
+      let printedHeader = false;
+      for (const slot of limited) {
+        if (slot.date !== currentDate) {
+          currentDate = slot.date;
+          let label = currentDate;
+          if (currentDate === todayDate) {
+            label = `Today (${currentDate})`;
+          } else if (currentDate === tomorrowDate) {
+            label = `Tomorrow (${currentDate})`;
+          }
+          const headerPrefix = printedHeader ? '\n' : '';
+          process.stdout.write(`${headerPrefix}${formatHeading(`# ${label}`)}\n`);
+          printedHeader = true;
+        }
+        process.stdout.write(
+          `${formatSlotRange(slot.start, slot.end)} (${formatLoadPercent(slot.loadPercent)})\n`,
+        );
       }
     });
 

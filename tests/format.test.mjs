@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { outputProductDetail } from '../dist/cli/format.js';
+import { formatHeading, outputProductDetail } from '../dist/cli/format.js';
 
 function captureOutput(fn) {
   let output = '';
@@ -27,5 +27,22 @@ const sample = {
 
 const output = captureOutput(() => outputProductDetail(sample));
 assert.match(output, /Expiry: 2026-09-30/);
+
+const originalIsTTY = process.stdout.isTTY;
+const originalNoColor = process.env.NO_COLOR;
+try {
+  Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true });
+  delete process.env.NO_COLOR;
+  assert.equal(formatHeading('Header'), '\u001b[1mHeader\u001b[0m');
+  process.env.NO_COLOR = '1';
+  assert.equal(formatHeading('Header'), 'Header');
+} finally {
+  Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY, configurable: true });
+  if (originalNoColor === undefined) {
+    delete process.env.NO_COLOR;
+  } else {
+    process.env.NO_COLOR = originalNoColor;
+  }
+}
 
 console.log('format.test ok');

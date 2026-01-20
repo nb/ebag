@@ -56,3 +56,15 @@ export type Cache = {
   products: Record<string, ProductSummary>;
   updatedAt?: string;
 };
+
+export type DeliverySlot = {
+  date: string;
+  key: string;
+  start: number;
+  end: number;
+  isAvailable: boolean;
+  loadPercent: number;
+  cutoffAfter?: string | null;
+  isPharmacyRestricted?: boolean;
+  isBakeryRestricted?: boolean;
+};

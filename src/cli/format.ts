@@ -4,6 +4,13 @@ export function outputJson(data: unknown) {
   process.stdout.write(`${JSON.stringify(data, null, 2)}\n`);
 }
 
+export function formatHeading(text: string) {
+  if (process.stdout.isTTY && !process.env.NO_COLOR) {
+    return `\u001b[1m${text}\u001b[0m`;
+  }
+  return text;
+}
+
 function formatPrice(product: ProductSummary) {
   if (product.currentPrice) return product.currentPrice;
   if (product.pricePromo) return product.pricePromo;
