@@ -33,6 +33,7 @@
 - CSRF handling:
   - Non-GET requests add `x-csrftoken` if `csrftoken` is present in cookies.
   - `origin` and `referer` headers are set for cart/list mutations.
+- Session data is stored in plain text with owner-only permissions (`0600`).
 
 ## Search Flow
 1) Load lists and collect product IDs.
@@ -60,15 +61,25 @@ Algolia endpoint:
 - `ebag login --cookie "<cookie>"`
 - `ebag status`
 - `ebag search <query> [--limit N] [--page N]`
+- `ebag product <productId>`
 - `ebag cart add <productId> [--qty N]`
 - `ebag cart update <productId> [--qty N]`
 - `ebag list ls`
 - `ebag list add <listId> <productId> [--qty N]`
 
+## Product Details Output
+- Human-readable output uses a YAML-style key/value block between `---` lines.
+- Description is converted from HTML to Markdown.
+- `Съставки` is split into a separate `# Ingridients` section.
+- Energy values are normalized to `\d+.\d+` and split into `kcal`/`kJ` when combined.
+- Prices prefer EUR (`current_price_eur`, `price_promo_eur`, `price_eur`).
+- Dates are normalized to `YYYY-MM-DD`.
+
 ## Testing
 - End-to-end tests exercise login, status, search, cart add/update, list add.
 - Requires `EBAG_COOKIE` and network access.
 - Tests use `EBAG_CONFIG_DIR` to avoid writing to home directory.
+- Unit tests cover product output formatting (including date normalization).
 - Run build and tests after each change:
   - `npm run build`
   - `EBAG_COOKIE="<cookie>" npm run test:e2e`

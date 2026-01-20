@@ -17,7 +17,7 @@ node dist/cli/index.js login --cookie "<cookie>"
 ```
 
 Notes:
-- Session data is stored in `~/.config/ebagcli/session.json` with owner-only permissions (`0600`).
+- Session data is stored in plain text at `~/.config/ebagcli/session.json` with owner-only permissions (`0600`).
 
 ## Search
 
