@@ -43,3 +43,18 @@ export async function addToList(
 
   return result.data;
 }
+
+export async function getListItems(
+  config: Config,
+  session: Session,
+  listId: number,
+  page = 1,
+): Promise<Record<string, unknown>> {
+  const result = await requestEbag<Record<string, unknown>>(
+    config,
+    session,
+    `/lists/${listId}/items/json`,
+    { query: { page } },
+  );
+  return result.data;
+}

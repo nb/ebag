@@ -4,7 +4,7 @@ import { addToCart, getCart, updateCart } from '../lib/cart';
 import { getLoginInstructions, validateSession } from '../lib/auth';
 import { normalizeCookieInput, validateCookieInput } from '../lib/cookies';
 import { loadConfig, loadSession, saveSession } from '../lib/config';
-import { getLists, addToList } from '../lib/lists';
+import { getListItems, getLists, addToList } from '../lib/lists';
 import { getProductById } from '../lib/products';
 import { searchProducts } from '../lib/search';
 import { outputJson, outputList, outputProducts, outputProductDetail } from './format';
@@ -23,27 +23,6 @@ function formatError(err: unknown) {
   if (error.status) details.status = error.status;
   if (error.body) details.body = error.body;
   return details;
-}
-
-async function mapWithConcurrency<T, R>(
-  items: T[],
-  limit: number,
-  mapper: (item: T) => Promise<R>,
-): Promise<R[]> {
-  const results: R[] = [];
-  let index = 0;
-
-  async function worker() {
-    while (index < items.length) {
-      const current = items[index];
-      index += 1;
-      results.push(await mapper(current));
-    }
-  }
-
-  const workers = Array.from({ length: Math.min(limit, items.length) }, worker);
-  await Promise.all(workers);
-  return results;
 }
 
 async function main() {
@@ -274,34 +253,57 @@ async function main() {
       const json = program.opts().json as boolean | undefined;
 
       const lists = await getLists(config, session);
-      if (listId) {
-        const listEntry = lists.find((item) => Number(item.id) === Number(listId));
-        if (!listEntry) {
-          throw new Error(`List ${listId} not found.`);
-        }
-        if (json) {
-          outputJson(listEntry);
-        } else {
-          const count = listEntry.products?.length ?? 0;
-          process.stdout.write(`${listEntry.name} (${listEntry.id})`);
-          if (!count) {
-            process.stdout.write(' - empty\n');
-            return;
+        if (listId) {
+          const listEntry = lists.find((item) => Number(item.id) === Number(listId));
+          if (!listEntry) {
+            throw new Error(`List ${listId} not found.`);
           }
-          process.stdout.write(` - ${count} items\n`);
-          const items = await mapWithConcurrency(
-            listEntry.products || [],
-            5,
-            async (product) => {
-              const detail = await getProductById(config, session, product.productId);
-              const name = detail?.name ? String(detail.name) : 'Unknown';
-              return { id: product.productId, name, count: product.quantity };
-            },
-          );
-          outputList(items);
+          const listItems = await getListItems(config, session, Number(listId));
+          const results = Array.isArray((listItems as { results?: unknown }).results)
+            ? ((listItems as { results?: unknown[] }).results as unknown[])
+            : [];
+          const count =
+            typeof (listItems as { count?: number }).count === 'number'
+              ? (listItems as { count?: number }).count
+              : results.length;
+          if (json) {
+            outputJson({
+              ...listEntry,
+              count,
+              items: results,
+              next: (listItems as { next?: unknown }).next ?? null,
+              previous: (listItems as { previous?: unknown }).previous ?? null,
+            });
+          } else {
+            process.stdout.write(`${listEntry.name} (${listEntry.id})`);
+            if (!count) {
+              process.stdout.write(' - empty\n');
+              return;
+            }
+            process.stdout.write(` - ${count} items\n`);
+            const outputItems = results
+              .map((item) => {
+                const entry = item as {
+                  product?: { id?: number; name?: string };
+                  product_id?: number;
+                  productId?: number;
+                  id?: number;
+                  name?: string;
+                  quantity?: number;
+                  qty?: number;
+                };
+                const product = entry.product as { id?: number; name?: string } | undefined;
+                const id = product?.id ?? entry.product_id ?? entry.productId ?? entry.id;
+                const name = product?.name ?? entry.name ?? 'Unknown';
+                const itemCount = entry.quantity ?? entry.qty;
+                if (!id) return null;
+                return { id: Number(id), name, count: itemCount };
+              })
+              .filter(Boolean) as { id: number; name: string; count?: number }[];
+            outputList(outputItems);
+          }
+          return;
         }
-        return;
-      }
 
       if (json) {
         outputJson(lists);
