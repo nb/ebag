@@ -83,6 +83,7 @@ Algolia endpoint:
 - Run build and tests after each change:
   - `npm run build`
   - `EBAG_COOKIE="<cookie>" npm run test:e2e`
+- Skip build/tests for doc-only changes (`*.md`) unless explicitly requested.
 
 ## Operational Notes
 - Treat cookie values and capture files as sensitive.
