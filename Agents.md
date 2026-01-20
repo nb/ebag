@@ -70,7 +70,7 @@ Algolia endpoint:
 ## Product Details Output
 - Human-readable output uses a YAML-style key/value block between `---` lines.
 - Description is converted from HTML to Markdown.
-- `Съставки` is split into a separate `# Ingridients` section.
+- `Съставки` is split into a separate `# Ingredients` section.
 - Energy values are normalized to `\d+.\d+` and split into `kcal`/`kJ` when combined.
 - Prices prefer EUR (`current_price_eur`, `price_promo_eur`, `price_eur`).
 - Dates are normalized to `YYYY-MM-DD`.

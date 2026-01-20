@@ -79,7 +79,7 @@ export function outputProductDetail(data: Record<string, unknown>) {
   const descriptionMd = description ? htmlToMarkdown(description) : '';
   const { descriptionText, ingredientsText } = splitIngredients(descriptionMd);
   const descriptionBlock = descriptionText ? `# Description\n\n${descriptionText}` : '';
-  const ingredientsBlock = ingredientsText ? `\n# Ingridients\n\n${ingredientsText}` : '';
+  const ingredientsBlock = ingredientsText ? `\n# Ingredients\n\n${ingredientsText}` : '';
 
   const kvBlock = kvLines.length ? ['---', ...kvLines, '---'].join('\n') : '';
   const output = [headerLines.join('\n'), kvBlock, descriptionBlock, ingredientsBlock]
