@@ -16,6 +16,9 @@ Get the cookie header from your browser and store it:
 node dist/cli/index.js login --cookie "<cookie>"
 ```
 
+Notes:
+- Session data is stored in `~/.config/ebagcli/session.json` with owner-only permissions (`0600`).
+
 ## Search
 
 ```bash

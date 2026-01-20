@@ -38,6 +38,11 @@ function writeJsonFile<T>(filePath: string, data: T) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
 }
 
+function writeSessionFile<T>(filePath: string, data: T) {
+  ensureDir(path.dirname(filePath));
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), { encoding: 'utf8', mode: 0o600 });
+}
+
 export function getConfigPath() {
   return path.join(getConfigDir(), 'config.json');
 }
@@ -74,7 +79,7 @@ export function loadSession(): Session {
 }
 
 export function saveSession(session: Session) {
-  writeJsonFile(getSessionPath(), session);
+  writeSessionFile(getSessionPath(), session);
 }
 
 export function loadCache(): Cache {
