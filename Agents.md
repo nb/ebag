@@ -24,7 +24,7 @@
 - Session: `~/.config/ebag/session.json`
   - Cookie header value; optional user agent.
 - Cache: `~/.config/ebag/cache.json`
-  - Product details cached by ID for list-based search.
+  - Product details cached by ID for list-based search (no TTL/eviction; refreshed on search).
 - Override: `EBAG_CONFIG_DIR` can redirect storage for testing.
 
 ## Authentication
@@ -60,6 +60,7 @@ Algolia endpoint:
 ## CLI Contract
 - `ebag login --cookie "<cookie>"`
 - `ebag status`
+- `ebag slots`
 - `ebag search <query> [--limit N] [--page N]`
 - `ebag product <productId>`
 - `ebag cart add <productId> [--qty N]`
