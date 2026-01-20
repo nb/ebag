@@ -4,8 +4,9 @@ import { addToCart, updateCart } from '../lib/cart';
 import { getLoginInstructions, validateSession } from '../lib/auth';
 import { loadConfig, loadSession, saveSession } from '../lib/config';
 import { getLists, addToList } from '../lib/lists';
+import { getProductById } from '../lib/products';
 import { searchProducts } from '../lib/search';
-import { outputJson, outputList, outputProducts } from './format';
+import { outputJson, outputList, outputProducts, outputProductDetail } from './format';
 
 function requireSessionCookie() {
   const session = loadSession();
@@ -134,6 +135,23 @@ async function main() {
         outputJson(result);
       } else {
         outputProducts(result.results);
+      }
+    });
+
+  program
+    .command('product')
+    .description('Get product details by ID')
+    .argument('<productId>', 'Product ID')
+    .action(async (productId) => {
+      const config = loadConfig();
+      const session = loadSession();
+      const json = program.opts().json as boolean | undefined;
+
+      const result = await getProductById(config, session, Number(productId));
+      if (json) {
+        outputJson(result);
+      } else {
+        outputProductDetail(result);
       }
     });
 

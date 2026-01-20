@@ -12,6 +12,8 @@ export type ProductSummary = {
   listNames?: string[];
 };
 
+export type ProductDetail = Record<string, unknown>;
+
 export type ListProduct = {
   productId: number;
   quantity: number;
