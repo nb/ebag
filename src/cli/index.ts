@@ -146,18 +146,13 @@ async function main() {
     .command('slots')
     .description('Show the next available delivery slots')
     .option('--limit <n>', 'Limit number of slots', '10')
-    .option('--city <key>', 'City key')
-    .option('--address <id>', 'Address encrypted id')
     .action(async (options) => {
       const config = loadConfig();
       const session = requireSessionCookie();
       const json = program.opts().json as boolean | undefined;
       const limit = Number(options.limit);
 
-      const slotsPayload = await getTimeSlots(config, session, {
-        cityKey: options.city as string | undefined,
-        addressEncryptedId: options.address as string | undefined,
-      });
+      const slotsPayload = await getTimeSlots(config, session);
       const slots = normalizeSlots(slotsPayload).filter((slot) => slot.isAvailable);
       slots.sort(sortSlots);
       const limited = slots.slice(0, Number.isFinite(limit) ? limit : 10);
