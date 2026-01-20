@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
 import { Command } from 'commander';
 import { addToCart, getCart, updateCart } from '../lib/cart';
 import { getLoginInstructions, validateSession } from '../lib/auth';
@@ -28,9 +30,21 @@ function formatError(err: unknown) {
 async function main() {
   const program = new Command();
 
+  function getPackageVersion() {
+    try {
+      const packagePath = path.resolve(__dirname, '../../package.json');
+      const raw = fs.readFileSync(packagePath, 'utf8');
+      const parsed = JSON.parse(raw) as { version?: string };
+      return parsed.version || 'unknown';
+    } catch {
+      return 'unknown';
+    }
+  }
+
   program
     .name('ebag')
     .description('CLI for interacting with ebag.bg')
+    .version(getPackageVersion(), '-v, --version', 'Show CLI version')
     .option('--json', 'Output JSON');
 
   program
