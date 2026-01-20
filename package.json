@@ -11,8 +11,9 @@
     "build": "tsc -p tsconfig.json",
     "capture": "node scripts/capture.mjs",
     "start": "node dist/cli/index.js",
+    "test:unit": "npm run build && node tests/format.test.mjs",
     "test:e2e": "npm run build && node tests/e2e.mjs",
-    "test": "npm run test:e2e"
+    "test": "npm run test:unit && npm run test:e2e"
   },
   "keywords": [],
   "author": "",

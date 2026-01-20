@@ -27,6 +27,16 @@ async function runCli(args) {
   return JSON.parse(stdout);
 }
 
+async function runCliRaw(args) {
+  const { stdout } = await execFileAsync('node', [cliPath, ...args], {
+    env: {
+      ...process.env,
+      EBAG_CONFIG_DIR: configDir,
+    },
+  });
+  return stdout;
+}
+
 async function fetchJson(path) {
   const response = await fetch(new URL(path, baseUrl), {
     headers: {
@@ -67,6 +77,19 @@ async function main() {
   const productId = searchBg.results[0].id;
   if (!productId) {
     throw new Error('Missing product id from search.');
+  }
+
+  console.log('e2e: product details');
+  const productOutput = await runCliRaw(['product', String(productId)]);
+  if (!productOutput.includes('# Description')) {
+    throw new Error('Product output missing Description heading.');
+  }
+  if (!productOutput.includes('Price:')) {
+    throw new Error('Product output missing Price line.');
+  }
+  const separatorCount = productOutput.split('\n---\n').length - 1;
+  if (separatorCount !== 2) {
+    throw new Error('Product output should contain a single YAML block.');
   }
 
   console.log('e2e: search miss');
