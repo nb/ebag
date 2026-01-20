@@ -45,6 +45,7 @@ ebag cart show
 ```bash
 ebag list show
 ebag list add 753250 5128 --qty 1
+ebag list show 753250
 ```
 
 ## Contributing

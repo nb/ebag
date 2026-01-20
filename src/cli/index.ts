@@ -246,23 +246,46 @@ async function main() {
   list
     .command('show')
     .description('Show your lists')
-    .action(async () => {
+    .argument('[listId]', 'List ID')
+    .action(async (listId) => {
       const config = loadConfig();
       const session = requireSessionCookie();
       const json = program.opts().json as boolean | undefined;
 
       const lists = await getLists(config, session);
+      if (listId) {
+        const listEntry = lists.find((item) => Number(item.id) === Number(listId));
+        if (!listEntry) {
+          throw new Error(`List ${listId} not found.`);
+        }
+        if (json) {
+          outputJson(listEntry);
+        } else {
+          const count = listEntry.products?.length ?? 0;
+          process.stdout.write(`${listEntry.name} (${listEntry.id})`);
+          if (count) {
+            process.stdout.write(` - ${count} items\n`);
+            for (const product of listEntry.products || []) {
+              process.stdout.write(`${product.productId} x${product.quantity}\n`);
+            }
+          } else {
+            process.stdout.write(' - empty\n');
+          }
+        }
+        return;
+      }
+
       if (json) {
         outputJson(lists);
-      } else {
-        outputList(
-          lists.map((item) => ({
-            id: item.id,
-            name: item.name,
-            count: item.products?.length,
-          })),
-        );
+        return;
       }
+      outputList(
+        lists.map((item) => ({
+          id: item.id,
+          name: item.name,
+          count: item.products?.length,
+        })),
+      );
     });
 
   list

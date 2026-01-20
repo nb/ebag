@@ -96,6 +96,10 @@ async function main() {
   if (!listId) {
     throw new Error('Missing list id.');
   }
+  const listDetail = await runCli(['list', 'show', String(listId)]);
+  if (!listDetail || Number(listDetail.id) !== Number(listId)) {
+    throw new Error('Expected list details for list show <listId>.');
+  }
 
   console.log('e2e: cart add');
   await runCli(['cart', 'add', String(productId), '--qty', '1']);

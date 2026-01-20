@@ -10,6 +10,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "capture": "node scripts/capture.mjs",
+    "local-install": "npm run build && TARBALL=$(npm pack --silent) && npm i -g \"$TARBALL\"",
     "prepublishOnly": "npm run build",
     "start": "node dist/cli/index.js",
     "test:unit": "npm run build && node tests/format.test.mjs && node tests/cookie.test.mjs",
