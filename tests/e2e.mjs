@@ -1,15 +1,18 @@
+import fs from 'node:fs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 
-const cookie = process.env.EBAG_COOKIE;
+const cookieFilePath = new URL('./.secrets/ebag-cookies', import.meta.url).pathname;
+const fileCookie = fs.existsSync(cookieFilePath) ? fs.readFileSync(cookieFilePath, 'utf8').trim() : '';
+const cookie = process.env.EBAG_COOKIE || fileCookie;
 const queryBg = process.env.EBAG_TEST_QUERY_BG || 'шоколад';
 const queryMiss = process.env.EBAG_TEST_QUERY_MISS || 'kashdklsdas';
 const baseUrl = process.env.EBAG_BASE_URL || 'https://www.ebag.bg';
 
 if (!cookie) {
-  console.error('EBAG_COOKIE is required to run e2e tests.');
+  console.error('EBAG_COOKIE is required to run e2e tests (or add tests/.secrets/ebag-cookies).');
   process.exit(1);
 }
 

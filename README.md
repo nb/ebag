@@ -42,14 +42,16 @@ node dist/cli/index.js list add 753250 5128 --qty 1
 
 ## End-to-end tests
 
-Requires a valid cookie:
-
-```bash
-EBAG_COOKIE="<cookie>" npm run test:e2e
-```
+By default, `npm run test:e2e` reads cookies from `tests/.secrets/ebag-cookies` (gitignored).
+You can also override with `EBAG_COOKIE`.
 
 Optional query override:
 
 ```bash
 EBAG_COOKIE="<cookie>" EBAG_TEST_QUERY="lindt" npm run test:e2e
+```
+Store test cookies in `tests/.secrets/ebag-cookies` (gitignored), then run:
+
+```bash
+npm run test:e2e
 ```
