@@ -15,7 +15,7 @@ if (!cookie) {
 
 const cliPath = new URL('../dist/cli/index.js', import.meta.url).pathname;
 
-const configDir = new URL('../.tmp/ebagcli', import.meta.url).pathname;
+const configDir = new URL('../.tmp/ebag', import.meta.url).pathname;
 
 async function runCli(args) {
   const { stdout } = await execFileAsync('node', [cliPath, '--json', ...args], {

@@ -21,7 +21,7 @@ export function getConfigDir() {
   if (override) {
     return override;
   }
-  return path.join(os.homedir(), '.config', 'ebagcli');
+  return path.join(os.homedir(), '.config', 'ebag');
 }
 
 function readJsonFile<T>(filePath: string, fallback: T): T {

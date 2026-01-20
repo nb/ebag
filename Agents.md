@@ -19,11 +19,11 @@
   - `format.ts`: human-readable output formatting.
 
 ## Data and Storage
-- Config: `~/.config/ebagcli/config.json`
+- Config: `~/.config/ebag/config.json`
   - Base URL and Algolia credentials (default values captured from network).
-- Session: `~/.config/ebagcli/session.json`
+- Session: `~/.config/ebag/session.json`
   - Cookie header value; optional user agent.
-- Cache: `~/.config/ebagcli/cache.json`
+- Cache: `~/.config/ebag/cache.json`
   - Product details cached by ID for list-based search.
 - Override: `EBAG_CONFIG_DIR` can redirect storage for testing.
 
