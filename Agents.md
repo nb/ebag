@@ -90,3 +90,9 @@ Algolia endpoint:
 - Treat cookie values and capture files as sensitive.
 - Algolia credentials are observed public keys; may change.
 - If endpoints or CSRF behavior change, refresh capture notes and update headers.
+
+## Captures
+- Stored in `captures/` as `capture-YYYYMMDD-HHMMSS.json` from `npm run capture` (`scripts/capture.mjs`).
+- DevTools-style network dump: request URLs, methods, headers, bodies, and response payloads/snippets for the recorded session.
+- Use `rg` to locate endpoints and payload shapes (e.g. `rg -n "lists/.*items/json" captures/capture-*.json`).
+- Contains sensitive session context (cookies, account data); avoid sharing and rotate cookies if needed.
