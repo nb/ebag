@@ -25,6 +25,27 @@ function formatError(err: unknown) {
   return details;
 }
 
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  mapper: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = [];
+  let index = 0;
+
+  async function worker() {
+    while (index < items.length) {
+      const current = items[index];
+      index += 1;
+      results.push(await mapper(current));
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(limit, items.length) }, worker);
+  await Promise.all(workers);
+  return results;
+}
+
 async function main() {
   const program = new Command();
 
@@ -263,14 +284,21 @@ async function main() {
         } else {
           const count = listEntry.products?.length ?? 0;
           process.stdout.write(`${listEntry.name} (${listEntry.id})`);
-          if (count) {
-            process.stdout.write(` - ${count} items\n`);
-            for (const product of listEntry.products || []) {
-              process.stdout.write(`${product.productId} x${product.quantity}\n`);
-            }
-          } else {
+          if (!count) {
             process.stdout.write(' - empty\n');
+            return;
           }
+          process.stdout.write(` - ${count} items\n`);
+          const items = await mapWithConcurrency(
+            listEntry.products || [],
+            5,
+            async (product) => {
+              const detail = await getProductById(config, session, product.productId);
+              const name = detail?.name ? String(detail.name) : 'Unknown';
+              return { id: product.productId, name, count: product.quantity };
+            },
+          );
+          outputList(items);
         }
         return;
       }

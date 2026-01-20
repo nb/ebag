@@ -63,7 +63,8 @@ async function main() {
   }
 
   const productId = searchBg.results[0].id;
-  if (!productId) {
+  const productName = searchBg.results[0].name;
+  if (!productId || !productName) {
     throw new Error('Missing product id from search.');
   }
 
@@ -128,6 +129,10 @@ async function main() {
   const listProductIds = (listAfterAdd?.products || []).map((item) => item.productId);
   if (!listProductIds.includes(Number(productId))) {
     throw new Error('List add did not include product.');
+  }
+  const listDetailOutput = await runCliRaw(['list', 'show', String(listId)]);
+  if (!listDetailOutput.includes(`${productId} ${productName}`)) {
+    throw new Error('List detail output missing product name.');
   }
 
   console.log('e2e ok');
