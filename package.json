@@ -10,6 +10,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "capture": "node scripts/capture.mjs",
+    "prepublishOnly": "npm run build",
     "start": "node dist/cli/index.js",
     "test:unit": "npm run build && node tests/format.test.mjs",
     "test:e2e": "npm run build && node tests/e2e.mjs",
@@ -18,6 +19,15 @@
   "keywords": [],
   "author": "",
   "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nb/ebag.git"
+  },
+  "bugs": "https://github.com/nb/ebag/issues",
+  "homepage": "https://github.com/nb/ebag#readme",
+  "engines": {
+    "node": ">=18"
+  },
   "type": "commonjs",
   "files": [
     "dist"
