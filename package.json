@@ -12,7 +12,7 @@
     "capture": "node scripts/capture.mjs",
     "prepublishOnly": "npm run build",
     "start": "node dist/cli/index.js",
-    "test:unit": "npm run build && node tests/format.test.mjs",
+    "test:unit": "npm run build && node tests/format.test.mjs && node tests/cookie.test.mjs",
     "test:e2e": "npm run build && node tests/e2e.mjs",
     "test": "npm run test:unit && npm run test:e2e"
   },

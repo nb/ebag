@@ -2,6 +2,7 @@
 import { Command } from 'commander';
 import { addToCart, updateCart } from '../lib/cart';
 import { getLoginInstructions, validateSession } from '../lib/auth';
+import { normalizeCookieInput, validateCookieInput } from '../lib/cookies';
 import { loadConfig, loadSession, saveSession } from '../lib/config';
 import { getLists, addToList } from '../lib/lists';
 import { getProductById } from '../lib/products';
@@ -49,28 +50,36 @@ async function main() {
         return;
       }
 
-      const session = {
-        cookies: options.cookie as string,
-        updatedAt: new Date().toISOString(),
-      };
-      saveSession(session);
+      const normalizedCookie = normalizeCookieInput(options.cookie as string);
+      const cookieError = validateCookieInput(normalizedCookie);
+      if (cookieError) {
+        throw new Error(`${cookieError} Run \`ebag login --cookie "<cookie>"\` with a Cookie header value.`);
+      }
 
       try {
+        const session = {
+          cookies: normalizedCookie,
+          updatedAt: new Date().toISOString(),
+        };
         const user = await validateSession(config, session);
-        const email = (user as { email?: string; username?: string }).email || (user as { email?: string; username?: string }).username;
+        const email =
+          (user as { email?: string; username?: string }).email ||
+          (user as { email?: string; username?: string }).username;
+        if (!email) {
+          throw new Error('Session validated but no user email was returned.');
+        }
+        saveSession(session);
         if (json) {
           outputJson({ status: 'ok', user, email });
         } else {
-          process.stdout.write('Login session saved and validated.\n');
-          if (email) {
-            process.stdout.write(`Logged in as: ${email}\n`);
-          }
+          process.stdout.write('Login session validated and saved.\n');
+          process.stdout.write(`Logged in as: ${email}\n`);
         }
       } catch (err) {
         if (json) {
           outputJson({ status: 'error', message: (err as Error).message });
         } else {
-          process.stderr.write(`Login saved but validation failed: ${(err as Error).message}\n`);
+          process.stderr.write(`Login failed: ${(err as Error).message}\n`);
         }
       }
     });
