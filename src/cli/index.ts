@@ -244,8 +244,8 @@ async function main() {
 
   const list = program.command('list').description('List operations');
   list
-    .command('ls')
-    .description('List your lists')
+    .command('show')
+    .description('Show your lists')
     .action(async () => {
       const config = loadConfig();
       const session = requireSessionCookie();

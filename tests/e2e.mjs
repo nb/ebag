@@ -86,8 +86,8 @@ async function main() {
     throw new Error('Expected empty results for missing search query.');
   }
 
-  console.log('e2e: list ls');
-  const lists = await runCli(['list', 'ls']);
+  console.log('e2e: list show');
+  const lists = await runCli(['list', 'show']);
   if (!Array.isArray(lists) || lists.length === 0) {
     throw new Error('No lists returned.');
   }
@@ -119,7 +119,7 @@ async function main() {
   console.log('e2e: list add');
   await runCli(['list', 'add', String(listId), String(productId), '--qty', '1']);
   console.log('e2e: list validate add');
-  const listsAfterAdd = await runCli(['list', 'ls']);
+  const listsAfterAdd = await runCli(['list', 'show']);
   const listAfterAdd = listsAfterAdd.find((list) => Number(list.id) === Number(listId));
   const listProductIds = (listAfterAdd?.products || []).map((item) => item.productId);
   if (!listProductIds.includes(Number(productId))) {
