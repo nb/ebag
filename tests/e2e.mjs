@@ -9,7 +9,6 @@ const fileCookie = fs.existsSync(cookieFilePath) ? fs.readFileSync(cookieFilePat
 const cookie = process.env.EBAG_COOKIE || fileCookie;
 const queryBg = process.env.EBAG_TEST_QUERY_BG || 'шоколад';
 const queryMiss = process.env.EBAG_TEST_QUERY_MISS || 'kashdklsdas';
-const baseUrl = process.env.EBAG_BASE_URL || 'https://www.ebag.bg';
 
 if (!cookie) {
   console.error('EBAG_COOKIE is required to run e2e tests (or add tests/.secrets/ebag-cookies).');
@@ -38,20 +37,6 @@ async function runCliRaw(args) {
     },
   });
   return stdout;
-}
-
-async function fetchJson(path) {
-  const response = await fetch(new URL(path, baseUrl), {
-    headers: {
-      cookie,
-      accept: 'application/json, text/plain, */*',
-    },
-  });
-  const text = await response.text();
-  if (!response.ok) {
-    throw new Error(`Fetch failed ${response.status}: ${text}`);
-  }
-  return JSON.parse(text);
 }
 
 function findCartItem(cart, productId) {
@@ -115,7 +100,7 @@ async function main() {
   console.log('e2e: cart add');
   await runCli(['cart', 'add', String(productId), '--qty', '1']);
   console.log('e2e: cart validate add');
-  const cartAfterAdd = await fetchJson('/cart/json');
+  const cartAfterAdd = await runCli(['cart', 'show']);
   const added = findCartItem(cartAfterAdd, productId);
   if (!added) {
     throw new Error('Cart add did not include product.');
@@ -124,7 +109,7 @@ async function main() {
   console.log('e2e: cart update');
   await runCli(['cart', 'update', String(productId), '--qty', '2']);
   console.log('e2e: cart validate update');
-  const cartAfterUpdate = await fetchJson('/cart/json');
+  const cartAfterUpdate = await runCli(['cart', 'show']);
   const updated = findCartItem(cartAfterUpdate, productId);
   const updatedQty = updated?.quantity ?? updated?.qty ?? updated?.count;
   if (!updated || Number(updatedQty) !== 2) {

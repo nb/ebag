@@ -31,6 +31,7 @@ node dist/cli/index.js search "lindt" --json
 ```bash
 node dist/cli/index.js cart add 5128 --qty 1
 node dist/cli/index.js cart update 5128 --qty 2
+node dist/cli/index.js cart show
 ```
 
 ## Lists

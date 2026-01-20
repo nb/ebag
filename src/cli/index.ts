@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { addToCart, updateCart } from '../lib/cart';
+import { addToCart, getCart, updateCart } from '../lib/cart';
 import { getLoginInstructions, validateSession } from '../lib/auth';
 import { normalizeCookieInput, validateCookieInput } from '../lib/cookies';
 import { loadConfig, loadSession, saveSession } from '../lib/config';
@@ -198,6 +198,47 @@ async function main() {
         outputJson(result);
       } else {
         process.stdout.write('Cart updated.\n');
+      }
+    });
+
+  cart
+    .command('show')
+    .description('Show cart contents')
+    .action(async () => {
+      const config = loadConfig();
+      const session = requireSessionCookie();
+      const json = program.opts().json as boolean | undefined;
+
+      const cartData = await getCart(config, session);
+      if (json) {
+        outputJson(cartData);
+        return;
+      }
+      const items = Array.isArray((cartData as { items?: unknown }).items)
+        ? ((cartData as { items?: unknown[] }).items as unknown[])
+        : [];
+      const listItems = items
+        .map((item) => {
+          const entry = item as {
+            product?: { id?: number; name?: string };
+            product_id?: number;
+            productId?: number;
+            id?: number;
+            name?: string;
+            quantity?: number;
+            qty?: number;
+          };
+          const id = entry.product?.id ?? entry.product_id ?? entry.productId ?? entry.id;
+          const name = entry.product?.name ?? entry.name ?? 'Unknown';
+          const count = entry.quantity ?? entry.qty;
+          if (!id) return null;
+          return { id: Number(id), name, count };
+        })
+        .filter(Boolean) as { id: number; name: string; count?: number }[];
+      if (listItems.length) {
+        outputList(listItems);
+      } else {
+        process.stdout.write('Cart is empty.\n');
       }
     });
 

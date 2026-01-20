@@ -54,3 +54,8 @@ export async function updateCart(
 
   return result.data;
 }
+
+export async function getCart(config: Config, session: Session) {
+  const result = await requestEbag(config, session, '/cart/json');
+  return result.data;
+}

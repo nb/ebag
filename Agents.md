@@ -64,6 +64,7 @@ Algolia endpoint:
 - `ebag product <productId>`
 - `ebag cart add <productId> [--qty N]`
 - `ebag cart update <productId> [--qty N]`
+- `ebag cart show`
 - `ebag list ls`
 - `ebag list add <listId> <productId> [--qty N]`
 
