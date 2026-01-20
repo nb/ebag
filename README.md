@@ -2,10 +2,16 @@
 
 CLI and library for interacting with ebag.bg (unofficial).
 
-## Build
+## Installation
 
 ```bash
-npm run build
+npm install -g ebag
+```
+
+Or run without installing:
+
+```bash
+npx ebag --help
 ```
 
 ## Login
@@ -13,7 +19,7 @@ npm run build
 Get the cookie header from your browser and store it:
 
 ```bash
-node dist/cli/index.js login --cookie "<cookie>"
+ebag login --cookie "<cookie>"
 ```
 
 Notes:
@@ -22,26 +28,34 @@ Notes:
 ## Search
 
 ```bash
-node dist/cli/index.js search "lindt"
-node dist/cli/index.js search "lindt" --json
+ebag search "lindt"
+ebag search "lindt" --json
 ```
 
 ## Cart
 
 ```bash
-node dist/cli/index.js cart add 5128 --qty 1
-node dist/cli/index.js cart update 5128 --qty 2
-node dist/cli/index.js cart show
+ebag cart add 5128 --qty 1
+ebag cart update 5128 --qty 2
+ebag cart show
 ```
 
 ## Lists
 
 ```bash
-node dist/cli/index.js list ls
-node dist/cli/index.js list add 753250 5128 --qty 1
+ebag list ls
+ebag list add 753250 5128 --qty 1
 ```
 
-## End-to-end tests
+## Contributing
+
+### Build
+
+```bash
+npm run build
+```
+
+### End-to-end tests
 
 By default, `npm run test:e2e` reads cookies from `tests/.secrets/ebag-cookies` (gitignored).
 You can also override with `EBAG_COOKIE`.
