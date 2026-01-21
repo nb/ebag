@@ -1,0 +1,3 @@
+* Support previous orders -- helpful to try to find something we've bought before
+* Maybe support checkout, sounds risky :) It will also involve things like payment methods and addresses
+* Clean up JSON output, it's a mess now, mostly the upstream fields
