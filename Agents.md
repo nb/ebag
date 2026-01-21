@@ -57,6 +57,10 @@ Algolia endpoint:
   - Add: `POST https://www.ebag.bg/lists/{listId}/items/update`
     - Body: `product_id`, `quantity`
 
+## Delivery Slots
+- `GET https://www.ebag.bg/orders/get-time-slots`
+- Response: map of `YYYY-MM-DD` → slot array (`start`, `end`, `is_available`, `load_percent`, `cutoff_after`).
+
 ## CLI Contract
 - `ebag login --cookie "<cookie>"`
 - `ebag status`
@@ -95,5 +99,6 @@ Algolia endpoint:
 ## Captures
 - Stored in `captures/` as `capture-YYYYMMDD-HHMMSS.json` from `npm run capture` (`scripts/capture.mjs`).
 - DevTools-style network dump: request URLs, methods, headers, bodies, and response payloads/snippets for the recorded session.
+- Files store the network log under `captures[]` entries with `url`, `method`, `request`, `response`.
 - Use `rg` to locate endpoints and payload shapes (e.g. `rg -n "lists/.*items/json" captures/capture-*.json`).
 - Contains sensitive session context (cookies, account data); avoid sharing and rotate cookies if needed.
