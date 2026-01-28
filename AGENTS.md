@@ -25,7 +25,7 @@
 - Session: `~/.config/ebag/session.json`
   - Cookie header value; optional user agent.
 - Cache: `~/.config/ebag/cache.json`
-  - Product details cached by ID for list-based search (no TTL/eviction; refreshed on search).
+  - Product details cached by ID for list-based search (6 hour TTL; refreshed on search).
   - Orders cached by ID when `order_status === 4` (fulfilled/final).
 - Override: `EBAG_CONFIG_DIR` can redirect storage for testing.
 

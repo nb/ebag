@@ -52,8 +52,13 @@ export type Session = {
   userAgent?: string;
 };
 
+export type ProductCacheEntry = {
+  product: ProductSummary;
+  cachedAt: string;
+};
+
 export type Cache = {
-  products: Record<string, ProductSummary>;
+  products: Record<string, ProductSummary | ProductCacheEntry>;
   orders?: Record<
     string,
     {

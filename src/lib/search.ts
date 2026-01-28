@@ -1,4 +1,4 @@
-import type { Cache, Config, ProductSummary, SearchResult, Session } from './types';
+import type { Cache, Config, ProductCacheEntry, ProductSummary, SearchResult, Session } from './types';
 import { loadCache, saveCache } from './config';
 import { requestAlgolia, requestEbag } from './client';
 import { getLists } from './lists';
@@ -8,6 +8,18 @@ const DEFAULT_FACETS = [
   'country_of_origin_bg',
   'hierarchical_categories_bg.lv1',
 ];
+
+export const PRODUCT_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+
+export function isProductCacheFresh(
+  entry: ProductCacheEntry,
+  now: number = Date.now(),
+  ttlMs: number = PRODUCT_CACHE_TTL_MS,
+) {
+  const cachedAt = Date.parse(entry.cachedAt);
+  if (!Number.isFinite(cachedAt)) return false;
+  return now - cachedAt < ttlMs;
+}
 
 function normalizeProductFromDetail(data: Record<string, unknown>): ProductSummary {
   const id = Number(data.id);
@@ -105,11 +117,19 @@ async function getProductWithCache(
 ) {
   const cached = cache.products[String(productId)];
   if (cached) {
-    return cached;
+    if ('product' in cached) {
+      const entry = cached as ProductCacheEntry;
+      if (isProductCacheFresh(entry)) {
+        return entry.product;
+      }
+    }
   }
 
   const product = await fetchProductDetail(config, session, productId);
-  cache.products[String(productId)] = product;
+  cache.products[String(productId)] = {
+    product,
+    cachedAt: new Date().toISOString(),
+  };
   return product;
 }
 
