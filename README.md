@@ -25,6 +25,7 @@ ebag login --cookie "<cookie>"
 Notes:
 - Session data is stored in plain text at `~/.config/ebag/session.json` with owner-only permissions (`0600`).
 - List-based search caches product details in `~/.config/ebag/cache.json` (no TTL/eviction).
+- Orders are cached by ID when `order_status === 4`.
 
 ## Search
 
@@ -37,6 +38,14 @@ ebag search "lindt" --json
 
 ```bash
 ebag slots
+```
+
+## Orders
+
+```bash
+ebag order list
+ebag order list --from 2024-02-01 --to 2024-03-31
+ebag order show DE9CD146FECD05BF
 ```
 
 ## Cart
