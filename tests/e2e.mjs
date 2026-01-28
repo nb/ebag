@@ -56,6 +56,28 @@ async function main() {
     throw new Error('Expected logged_in status after login.');
   }
 
+  console.log('e2e: order list');
+  const orders = await runCli(['order', 'list', '--limit', '1']);
+  if (!orders?.results || orders.results.length === 0) {
+    throw new Error('No orders returned.');
+  }
+  const orderId = orders.results[0].id;
+  if (!orderId) {
+    throw new Error('Missing order id.');
+  }
+
+  console.log('e2e: order show');
+  const orderDetail = await runCli(['order', 'show', String(orderId)]);
+  if (!orderDetail || orderDetail.id !== orderId) {
+    throw new Error('Expected order details for order show.');
+  }
+  if (!orderDetail.address) {
+    throw new Error('Order details missing address.');
+  }
+  if (!Array.isArray(orderDetail.items) || orderDetail.items.length === 0) {
+    throw new Error('Order details missing items.');
+  }
+
   console.log('e2e: search bg');
   const searchBg = await runCli(['search', queryBg, '--limit', '5']);
   if (!searchBg.results || searchBg.results.length === 0) {

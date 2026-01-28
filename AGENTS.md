@@ -12,6 +12,7 @@
   - `search.ts`: list-first search + Algolia fallback; caching.
   - `cart.ts`: add/update cart.
   - `lists.ts`: list retrieval and list add.
+  - `orders.ts`: order list/detail + slots; order caching.
   - `config.ts`: config/session/cache storage.
   - `types.ts`: shared types.
 - CLI (`src/cli/`)
@@ -25,6 +26,7 @@
   - Cookie header value; optional user agent.
 - Cache: `~/.config/ebag/cache.json`
   - Product details cached by ID for list-based search (no TTL/eviction; refreshed on search).
+  - Orders cached by ID when `order_status === 4` (fulfilled/final).
 - Override: `EBAG_CONFIG_DIR` can redirect storage for testing.
 
 ## Authentication
@@ -57,6 +59,12 @@ Algolia endpoint:
   - Add: `POST https://www.ebag.bg/lists/{listId}/items/update`
     - Body: `product_id`, `quantity`
 
+## Orders
+- List: `GET https://www.ebag.bg/orders/list/json`
+  - Query: `page`, `year`, `exclude_additional_order=true`
+- Detail: `GET https://www.ebag.bg/orders/{encryptedId}/details/json`
+- Additional orders are returned inside `order.additional_orders` for a primary order.
+
 ## Delivery Slots
 - `GET https://www.ebag.bg/orders/get-time-slots`
 - Response: map of `YYYY-MM-DD` → slot array (`start`, `end`, `is_available`, `load_percent`, `cutoff_after`).
@@ -67,6 +75,8 @@ Algolia endpoint:
 - `ebag slots`
 - `ebag search <query> [--limit N] [--page N]`
 - `ebag product <productId>`
+- `ebag order list [--limit N] [--page N] [--from YYYY-MM-DD] [--to YYYY-MM-DD]`
+- `ebag order show <orderId>`
 - `ebag cart add <productId> [--qty N]`
 - `ebag cart update <productId> [--qty N]`
 - `ebag cart show`
@@ -82,7 +92,7 @@ Algolia endpoint:
 - Dates are normalized to `YYYY-MM-DD`.
 
 ## Testing
-- End-to-end tests exercise login, status, search, cart add/update, list add.
+- End-to-end tests exercise login, status, order list/show, search, cart add/update, list add.
 - Requires `EBAG_COOKIE` and network access.
 - Tests use `EBAG_CONFIG_DIR` to avoid writing to home directory.
 - Unit tests cover product output formatting (including date normalization).

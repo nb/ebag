@@ -1,4 +1,4 @@
-import type { ProductSummary } from '../lib/types';
+import type { OrderDetail, OrderItem, OrderSummary, ProductSummary } from '../lib/types';
 
 export function outputJson(data: unknown) {
   process.stdout.write(`${JSON.stringify(data, null, 2)}\n`);
@@ -94,6 +94,152 @@ export function outputProductDetail(data: Record<string, unknown>) {
     .join('\n');
 
   process.stdout.write(`${output}\n`);
+}
+
+function formatOrderAmount(order: OrderSummary | OrderDetail) {
+  if ('finalAmountEur' in order && order.finalAmountEur) {
+    return `${order.finalAmountEur} EUR`;
+  }
+  if ('finalAmount' in order && order.finalAmount) {
+    return order.finalAmount;
+  }
+  if ('totals' in order) {
+    if (order.totals.totalPaidEur) return `${order.totals.totalPaidEur} EUR`;
+    if (order.totals.totalEur) return `${order.totals.totalEur} EUR`;
+    if (order.totals.totalPaid) return order.totals.totalPaid;
+    if (order.totals.total) return order.totals.total;
+  }
+  return '';
+}
+
+function formatDateInTimeZone(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const lookup = new Map(parts.map((part) => [part.type, part.value]));
+  const year = lookup.get('year') || '';
+  const month = lookup.get('month') || '';
+  const day = lookup.get('day') || '';
+  return `${year}-${month}-${day}`;
+}
+
+function formatOrderStatus(order: OrderSummary | OrderDetail) {
+  const status = order.status;
+  if (status === 3) return 'Отказана';
+  if (status === 4) {
+    const date = order.shippingDate ? formatDate(order.shippingDate) : '';
+    const todayDate = formatDateInTimeZone(new Date(), 'Europe/Sofia');
+    if (date && date >= todayDate) return 'Нова';
+    return 'Завършена';
+  }
+  if (status !== undefined) {
+    return `Status ${status}`;
+  }
+  return '';
+}
+
+export function outputOrdersList(orders: OrderSummary[]) {
+  for (const order of orders) {
+    const date = order.shippingDate ? formatDate(order.shippingDate) : '';
+    const slot = order.timeSlotDisplay || '';
+    const status = formatOrderStatus(order);
+    const total = formatOrderAmount(order);
+    const parts = [order.id, date, slot].filter(Boolean);
+    const suffix = [status, total].filter(Boolean).join(' - ');
+    const line = `${parts.join(' ')}${suffix ? ` - ${suffix}` : ''}`;
+    process.stdout.write(`${line}\n`);
+  }
+}
+
+function outputOrderItems(items: OrderItem[]) {
+  const byGroup = new Map<string, OrderItem[]>();
+  const ungrouped: OrderItem[] = [];
+  for (const item of items) {
+    if (item.group) {
+      const groupItems = byGroup.get(item.group) || [];
+      groupItems.push(item);
+      byGroup.set(item.group, groupItems);
+    } else {
+      ungrouped.push(item);
+    }
+  }
+
+  const groupEntries = [...byGroup.entries()];
+  if (groupEntries.length) {
+    for (const [group, groupItems] of groupEntries) {
+      process.stdout.write(`## ${group}\n`);
+      for (const item of groupItems) {
+        const qty = item.quantity ? ` x${item.quantity}` : '';
+        const unit = item.unit ? ` (${item.unit})` : '';
+        const price = item.priceEur ? `${item.priceEur} EUR` : item.price || '';
+        const line = `- ${item.name}${unit}${qty}${price ? ` - ${price}` : ''}`;
+        process.stdout.write(`${line}\n`);
+      }
+      process.stdout.write('\n');
+    }
+  }
+
+  if (ungrouped.length) {
+    for (const item of ungrouped) {
+      const qty = item.quantity ? ` x${item.quantity}` : '';
+      const unit = item.unit ? ` (${item.unit})` : '';
+      const price = item.priceEur ? `${item.priceEur} EUR` : item.price || '';
+      const line = `- ${item.name}${unit}${qty}${price ? ` - ${price}` : ''}`;
+      process.stdout.write(`${line}\n`);
+    }
+    process.stdout.write('\n');
+  }
+}
+
+export function outputOrderDetail(detail: OrderDetail) {
+  const header = `# Order ${detail.id || ''}`.trim();
+  const status = formatOrderStatus(detail);
+  const date = detail.shippingDate ? formatDate(detail.shippingDate) : '';
+  const address = detail.address || '';
+  const total = formatOrderAmount(detail);
+  const kvPairs = [
+    ['ID', detail.id],
+    ['Status', status],
+    ['Date', date],
+    ['Timeslot', detail.timeSlotDisplay || ''],
+    ['Address', address],
+    ['Total', total],
+    ['Discount', detail.totals.discountEur ? `${detail.totals.discountEur} EUR` : detail.totals.discount || ''],
+    ['Tip', detail.totals.tipEur ? `${detail.totals.tipEur} EUR` : detail.totals.tip || ''],
+  ].filter(([, value]) => value);
+  const kvLines = kvPairs.map(([key, value]) => `${key}: ${value}`);
+  const kvBlock = kvLines.length ? ['---', ...kvLines, '---'].join('\n') : '';
+
+  process.stdout.write(`${header}\n`);
+  if (kvBlock) {
+    process.stdout.write(`${kvBlock}\n`);
+  }
+
+  process.stdout.write('# Items\n');
+  if (detail.items.length) {
+    outputOrderItems(detail.items);
+  } else {
+    process.stdout.write('No items found.\n\n');
+  }
+
+  if (detail.additionalOrders && detail.additionalOrders.length) {
+    process.stdout.write('# Additional Orders\n');
+    for (const additional of detail.additionalOrders) {
+      process.stdout.write(`## Order ${additional.id}\n`);
+      const additionalTotal = formatOrderAmount(additional);
+      if (additionalTotal) {
+        process.stdout.write(`Total: ${additionalTotal}\n`);
+      }
+      if (additional.items.length) {
+        outputOrderItems(additional.items);
+      } else {
+        process.stdout.write('No items found.\n\n');
+      }
+    }
+  }
 }
 
 function formatDate(value: string) {

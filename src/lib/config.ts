@@ -83,7 +83,7 @@ export function saveSession(session: Session) {
 }
 
 export function loadCache(): Cache {
-  return readJsonFile<Cache>(getCachePath(), { products: {} });
+  return readJsonFile<Cache>(getCachePath(), { products: {}, orders: {} });
 }
 
 export function saveCache(cache: Cache) {

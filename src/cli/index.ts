@@ -7,11 +7,19 @@ import { getLoginInstructions, validateSession } from '../lib/auth';
 import { normalizeCookieInput, validateCookieInput } from '../lib/cookies';
 import { loadConfig, loadSession, saveSession } from '../lib/config';
 import { getListItems, getLists, addToList } from '../lib/lists';
-import { getTimeSlots } from '../lib/orders';
+import { getOrderDetail, getTimeSlots, listOrders } from '../lib/orders';
 import { getProductById } from '../lib/products';
 import { searchProducts } from '../lib/search';
 import { formatLoadPercent, formatSlotRange, normalizeSlots, sortSlots } from '../lib/slots';
-import { formatHeading, outputJson, outputList, outputProducts, outputProductDetail } from './format';
+import {
+  formatHeading,
+  outputJson,
+  outputList,
+  outputOrderDetail,
+  outputOrdersList,
+  outputProducts,
+  outputProductDetail,
+} from './format';
 
 function requireSessionCookie() {
   const session = loadSession();
@@ -227,6 +235,55 @@ async function main() {
         outputJson(result);
       } else {
         outputProductDetail(result);
+      }
+    });
+
+  const order = program.command('order').description('Order operations');
+  order
+    .command('list')
+    .description('List recent orders')
+    .option('--limit <n>', 'Limit number of results', '10')
+    .option('--page <n>', 'Page number')
+    .option('--from <date>', 'Filter from date (YYYY-MM-DD)')
+    .option('--to <date>', 'Filter to date (YYYY-MM-DD)')
+    .action(async (options) => {
+      const config = loadConfig();
+      const session = requireSessionCookie();
+      const json = program.opts().json as boolean | undefined;
+      const limit = Number(options.limit);
+      const page = options.page ? Number(options.page) : undefined;
+      const from = options.from as string | undefined;
+      const to = options.to as string | undefined;
+
+      const result = await listOrders(config, session, {
+        limit: Number.isFinite(limit) ? limit : 10,
+        page: page !== undefined && Number.isFinite(page) ? page : undefined,
+        from,
+        to,
+      });
+      if (json) {
+        outputJson(result);
+      } else if (!result.results.length) {
+        process.stdout.write('No orders found.\n');
+      } else {
+        outputOrdersList(result.results);
+      }
+    });
+
+  order
+    .command('show')
+    .description('Show order details')
+    .argument('<orderId>', 'Order ID')
+    .action(async (orderId) => {
+      const config = loadConfig();
+      const session = requireSessionCookie();
+      const json = program.opts().json as boolean | undefined;
+
+      const detail = await getOrderDetail(config, session, String(orderId));
+      if (json) {
+        outputJson(detail);
+      } else {
+        outputOrderDetail(detail);
       }
     });
 

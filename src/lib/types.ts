@@ -54,6 +54,14 @@ export type Session = {
 
 export type Cache = {
   products: Record<string, ProductSummary>;
+  orders?: Record<
+    string,
+    {
+      status?: number;
+      updatedAt?: string;
+      detail: OrderDetail;
+    }
+  >;
   updatedAt?: string;
 };
 
@@ -67,4 +75,51 @@ export type DeliverySlot = {
   cutoffAfter?: string | null;
   isPharmacyRestricted?: boolean;
   isBakeryRestricted?: boolean;
+};
+
+export type OrderSummary = {
+  id: string;
+  shippingDate?: string;
+  timeSlotStart?: number;
+  timeSlotEnd?: number;
+  timeSlotDisplay?: string;
+  status?: number;
+  statusText?: string | null;
+  finalAmount?: string;
+  finalAmountEur?: string;
+  additionalOrdersCount?: number;
+  phone?: string;
+};
+
+export type OrderItem = {
+  id?: number;
+  name: string;
+  quantity?: string;
+  unit?: string;
+  price?: string;
+  priceEur?: string;
+  regularPrice?: string;
+  regularPriceEur?: string;
+  group?: string;
+};
+
+export type OrderDetail = {
+  id: string;
+  status?: number;
+  statusText?: string | null;
+  shippingDate?: string;
+  timeSlotDisplay?: string;
+  address?: string;
+  totals: {
+    total?: string;
+    totalEur?: string;
+    totalPaid?: string;
+    totalPaidEur?: string;
+    discount?: string;
+    discountEur?: string;
+    tip?: string;
+    tipEur?: string;
+  };
+  items: OrderItem[];
+  additionalOrders?: OrderDetail[];
 };
