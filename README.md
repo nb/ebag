@@ -25,7 +25,6 @@ ebag login --cookie "<cookie>"
 Notes:
 - Session data is stored in plain text at `~/.config/ebag/session.json` with owner-only permissions (`0600`).
 - List-based search caches product details in `~/.config/ebag/cache.json` (no TTL/eviction).
-- Orders are cached by ID when `order_status === 4`.
 
 ## Search
 
