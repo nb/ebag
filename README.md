@@ -1,6 +1,6 @@
 # ebag
 
-CLI and library for interacting with ebag.bg (unofficial).
+CLI for interacting with ebag.bg (unofficial).
 
 ## Installation
 

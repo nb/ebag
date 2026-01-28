@@ -1,7 +1,7 @@
 # Architecture
 
 ## Overview
-- TypeScript codebase with a thin CLI wrapper over a reusable library.
+- TypeScript CLI built on a shared codebase.
 - Cookie-based authentication; avoid automated login for stability.
 - Human-readable CLI output by default; `--json` for scripting.
 

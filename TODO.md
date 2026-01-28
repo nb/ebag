@@ -2,3 +2,4 @@
 * Maybe support checkout, sounds risky :) It will also involve things like payment methods and addresses
 * Clean up JSON output, it's a mess now, mostly the upstream fields
 * Consider refactoring API response typings for consistency across modules
+* Revisit first-class library support and documentation
