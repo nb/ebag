@@ -1,7 +1,7 @@
 {
   "name": "ebag",
   "version": "0.0.2",
-  "description": "",
+  "description": "Unofficial CLI for interacting with ebag.bg using cookie-based auth.",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
   "bin": {
@@ -17,8 +17,18 @@
     "test:e2e": "npm run build && node tests/e2e.mjs",
     "test": "npm run test:unit && npm run test:e2e"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "ebag",
+    "ebag.bg",
+    "grocery",
+    "supermarket",
+    "shopping",
+    "delivery",
+    "cli",
+    "bulgaria",
+    "store"
+  ],
+  "author": "Nikolay Bachiyski <nb@nikolay.bg>",
   "license": "GPL-3.0-or-later",
   "repository": {
     "type": "git",
