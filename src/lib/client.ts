@@ -73,8 +73,13 @@ export async function requestEbag<T>(
 
   if (!response.ok) {
     const err = new Error(`Request failed ${response.status} ${url}`);
-    (err as Error & { status?: number; body?: string }).status = response.status;
-    (err as Error & { status?: number; body?: string }).body = raw;
+    (err as Error & { status?: number; body?: string; url?: string; method?: string }).status =
+      response.status;
+    (err as Error & { status?: number; body?: string; url?: string; method?: string }).body = raw;
+    (err as Error & { status?: number; body?: string; url?: string; method?: string }).url =
+      url.toString();
+    (err as Error & { status?: number; body?: string; url?: string; method?: string }).method =
+      method;
     throw err;
   }
 
@@ -115,8 +120,13 @@ export async function requestAlgolia<T>(
 
   if (!response.ok) {
     const err = new Error(`Algolia request failed ${response.status}`);
-    (err as Error & { status?: number; body?: string }).status = response.status;
-    (err as Error & { status?: number; body?: string }).body = raw;
+    (err as Error & { status?: number; body?: string; url?: string; method?: string }).status =
+      response.status;
+    (err as Error & { status?: number; body?: string; url?: string; method?: string }).body = raw;
+    (err as Error & { status?: number; body?: string; url?: string; method?: string }).url =
+      url.toString();
+    (err as Error & { status?: number; body?: string; url?: string; method?: string }).method =
+      'POST';
     throw err;
   }
 

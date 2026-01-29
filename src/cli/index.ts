@@ -5,12 +5,13 @@ import { Command } from 'commander';
 import { addToCart, getCart, updateCart } from '../lib/cart';
 import { getLoginInstructions, validateSession } from '../lib/auth';
 import { normalizeCookieInput, validateCookieInput } from '../lib/cookies';
-import { loadConfig, loadSession, saveSession } from '../lib/config';
+import { getConfigDir, loadConfig, loadSession, saveSession } from '../lib/config';
 import { getListItems, getLists, addToList } from '../lib/lists';
 import { getOrderDetail, getTimeSlots, listOrders } from '../lib/orders';
 import { getProductById } from '../lib/products';
 import { searchProducts } from '../lib/search';
 import { formatLoadPercent, formatSlotRange, normalizeSlots, sortSlots } from '../lib/slots';
+import { appendLog } from '../lib/log';
 import {
   formatHeading,
   outputJson,
@@ -39,6 +40,9 @@ function formatError(err: unknown) {
 
 async function main() {
   const program = new Command();
+  let lastCommand = 'unknown';
+  let lastArgs: string[] = [];
+  let lastStart = Date.now();
 
   function getPackageVersion() {
     try {
@@ -56,6 +60,39 @@ async function main() {
     .description('CLI for interacting with ebag.bg')
     .version(getPackageVersion(), '-v, --version', 'Show CLI version')
     .option('--json', 'Output JSON');
+
+  program.hook('preAction', (_thisCommand: Command, actionCommand: Command) => {
+    lastStart = Date.now();
+    const commandPath = (actionCommand as Command & { commandPath?: () => string }).commandPath?.();
+    lastCommand = commandPath || actionCommand.name() || 'unknown';
+    lastArgs = process.argv.slice(2);
+    appendLog({
+      level: 'info',
+      event: 'command.start',
+      command: lastCommand,
+      args: lastArgs,
+      json: Boolean(program.opts().json),
+      pid: process.pid,
+      ppid: process.ppid,
+      cwd: process.cwd(),
+      node: process.version,
+      configDir: getConfigDir(),
+    });
+  });
+
+  program.hook('postAction', () => {
+    const durationMs = Date.now() - lastStart;
+    appendLog({
+      level: 'info',
+      event: 'command.finish',
+      command: lastCommand,
+      args: lastArgs,
+      json: Boolean(program.opts().json),
+      pid: process.pid,
+      durationMs,
+      configDir: getConfigDir(),
+    });
+  });
 
   program
     .command('login')
@@ -465,6 +502,22 @@ async function main() {
     await program.parseAsync(process.argv);
   } catch (err) {
     const json = program.opts().json as boolean | undefined;
+    const error = err as Error & { status?: number; body?: string; url?: string; method?: string };
+    appendLog({
+      level: 'error',
+      event: 'command.error',
+      command: lastCommand,
+      args: lastArgs,
+      json: Boolean(json),
+      pid: process.pid,
+      durationMs: Date.now() - lastStart,
+      configDir: getConfigDir(),
+      message: error.message,
+      status: error.status,
+      body: error.body,
+      url: error.url,
+      method: error.method,
+    });
     if (json) {
       outputJson({ status: 'error', ...formatError(err) });
     } else {

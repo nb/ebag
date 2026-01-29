@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { getLogPath } from '../dist/lib/config.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -18,6 +19,8 @@ if (!cookie) {
 const cliPath = new URL('../dist/cli/index.js', import.meta.url).pathname;
 
 const configDir = new URL('../.tmp/ebag', import.meta.url).pathname;
+process.env.EBAG_CONFIG_DIR = configDir;
+const logPath = getLogPath();
 
 async function runCli(args) {
   const { stdout } = await execFileAsync('node', [cliPath, '--json', ...args], {
@@ -155,6 +158,21 @@ async function main() {
   const listDetailOutput = await runCliRaw(['list', 'show', String(listId)]);
   if (!listDetailOutput.includes(`${productId} ${productName}`)) {
     throw new Error('List detail output missing product name.');
+  }
+
+  console.log('e2e: log verify');
+  if (!fs.existsSync(logPath)) {
+    throw new Error('Log file was not created.');
+  }
+  const logText = fs.readFileSync(logPath, 'utf8');
+  if (!logText.includes('event="command.start"')) {
+    throw new Error('Log file missing command.start entries.');
+  }
+  if (!logText.includes('event="command.finish"')) {
+    throw new Error('Log file missing command.finish entries.');
+  }
+  if (cookie && logText.includes(cookie)) {
+    throw new Error('Log file contains raw cookie value.');
   }
 
   console.log('e2e ok');

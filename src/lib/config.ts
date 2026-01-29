@@ -55,6 +55,10 @@ export function getCachePath() {
   return path.join(getConfigDir(), 'cache.json');
 }
 
+export function getLogPath() {
+  return path.join(getConfigDir(), 'ebag.log');
+}
+
 export function loadConfig(): Config {
   const stored = readJsonFile<Config>(getConfigPath(), {} as Config);
   const algolia = {
