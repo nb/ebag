@@ -6,4 +6,7 @@ captures/
 .claude/
 .tmp/
 tests/.secrets/
+tests/.config/ebag/cache.json
+tests/.config/ebag/ebag.log
+tests/.config/ebag/session.json
 *.tgz

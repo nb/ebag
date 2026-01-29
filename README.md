@@ -81,7 +81,7 @@ npm run test:unit
 
 ### End-to-end tests
 
-Requires a valid session cookie. Store it in `tests/.secrets/ebag-cookies` (gitignored) or set `EBAG_COOKIE`:
+Requires a valid session in `tests/.config/ebag/session.json` (gitignored):
 
 ```bash
 npm run test:e2e

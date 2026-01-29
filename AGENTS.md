@@ -93,12 +93,12 @@ Algolia endpoint:
 
 ## Testing
 - End-to-end tests exercise login, status, order list/show, search, cart add/update, list add.
-- Requires `EBAG_COOKIE` and network access.
-- Tests use `EBAG_CONFIG_DIR` to avoid writing to home directory.
+- Requires `tests/.config/ebag/session.json` with a valid `cookies` value and network access.
+- Tests use `EBAG_CONFIG_DIR` env var to isolate test config from production.
 - Unit tests cover product output formatting (including date normalization).
 - Run build and tests after each change:
   - `npm run build`
-  - `EBAG_COOKIE="<cookie>" npm run test:e2e`
+  - `npm run test:e2e`
 - Skip build/tests for doc-only changes (`*.md`) unless explicitly requested.
 
 ## Operational Notes

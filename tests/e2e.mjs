@@ -5,40 +5,36 @@ import { getLogPath } from '../dist/lib/config.js';
 
 const execFileAsync = promisify(execFile);
 
-const cookieFilePath = new URL('./.secrets/ebag-cookies', import.meta.url).pathname;
-const fileCookie = fs.existsSync(cookieFilePath) ? fs.readFileSync(cookieFilePath, 'utf8').trim() : '';
-const cookie = process.env.EBAG_COOKIE || fileCookie;
-const queryBg = process.env.EBAG_TEST_QUERY_BG || 'шоколад';
-const queryMiss = process.env.EBAG_TEST_QUERY_MISS || 'kashdklsdas';
+const configDir = new URL('./.config/ebag', import.meta.url).pathname;
+const sessionFilePath = new URL('./.config/ebag/session.json', import.meta.url).pathname;
+const queryBg = 'шоколад';
+const queryMiss = 'kashdklsdas';
 
+let session;
+try {
+  session = JSON.parse(fs.readFileSync(sessionFilePath, 'utf8'));
+} catch {
+  console.error('Missing session.json for e2e tests. Create tests/.config/ebag/session.json first.');
+  process.exit(1);
+}
+
+const cookie = session?.cookies?.trim();
 if (!cookie) {
-  console.error('EBAG_COOKIE is required to run e2e tests (or add tests/.secrets/ebag-cookies).');
+  console.error('session.json missing cookies value. Update tests/.config/ebag/session.json.');
   process.exit(1);
 }
 
 const cliPath = new URL('../dist/cli/index.js', import.meta.url).pathname;
-
-const configDir = new URL('../.tmp/ebag', import.meta.url).pathname;
 process.env.EBAG_CONFIG_DIR = configDir;
 const logPath = getLogPath();
 
 async function runCli(args) {
-  const { stdout } = await execFileAsync('node', [cliPath, '--json', ...args], {
-    env: {
-      ...process.env,
-      EBAG_CONFIG_DIR: configDir,
-    },
-  });
+  const { stdout } = await execFileAsync('node', [cliPath, '--json', ...args]);
   return JSON.parse(stdout);
 }
 
 async function runCliRaw(args) {
-  const { stdout } = await execFileAsync('node', [cliPath, ...args], {
-    env: {
-      ...process.env,
-      EBAG_CONFIG_DIR: configDir,
-    },
-  });
+  const { stdout } = await execFileAsync('node', [cliPath, ...args]);
   return stdout;
 }
 
