@@ -73,18 +73,22 @@ ebag list show 753250
 npm run build
 ```
 
-### End-to-end tests
-
-By default, `npm run test:e2e` reads cookies from `tests/.secrets/ebag-cookies` (gitignored).
-You can also override with `EBAG_COOKIE`.
-
-Optional query override:
+### Unit tests
 
 ```bash
-EBAG_COOKIE="<cookie>" EBAG_TEST_QUERY="lindt" npm run test:e2e
+npm run test:unit
 ```
-Store test cookies in `tests/.secrets/ebag-cookies` (gitignored), then run:
+
+### End-to-end tests
+
+Requires a valid session cookie. Store it in `tests/.secrets/ebag-cookies` (gitignored) or set `EBAG_COOKIE`:
 
 ```bash
 npm run test:e2e
+```
+
+### All tests
+
+```bash
+npm test
 ```
