@@ -200,7 +200,8 @@ async function main() {
       }
     });
 
-  program
+  const product = program.command('product').description('Product operations');
+  product
     .command('search')
     .description('Search for products')
     .argument('<query>', 'Search query')
@@ -221,8 +222,8 @@ async function main() {
       }
     });
 
-  program
-    .command('product')
+  product
+    .command('show')
     .description('Get product details by ID')
     .argument('<productId>', 'Product ID')
     .action(async (productId) => {

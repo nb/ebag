@@ -27,11 +27,12 @@ Notes:
 - List-based search caches product details in `~/.config/ebag/cache.json` for up to 6 hours.
 - Completed orders may be cached locally for faster access.
 
-## Search
+## Products
 
 ```bash
-ebag search "lindt"
-ebag search "lindt" --json
+ebag product search "lindt"
+ebag product search "lindt" --json
+ebag product show 5128
 ```
 
 ## Delivery slots

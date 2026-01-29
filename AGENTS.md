@@ -73,8 +73,8 @@ Algolia endpoint:
 - `ebag login --cookie "<cookie>"`
 - `ebag status`
 - `ebag slots`
-- `ebag search <query> [--limit N] [--page N]`
-- `ebag product <productId>`
+- `ebag product search <query> [--limit N] [--page N]`
+- `ebag product show <productId>`
 - `ebag order list [--limit N] [--page N] [--from YYYY-MM-DD] [--to YYYY-MM-DD]`
 - `ebag order show <orderId>`
 - `ebag cart add <productId> [--qty N]`

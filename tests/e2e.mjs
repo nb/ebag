@@ -78,8 +78,8 @@ async function main() {
     throw new Error('Order details missing items.');
   }
 
-  console.log('e2e: search bg');
-  const searchBg = await runCli(['search', queryBg, '--limit', '5']);
+  console.log('e2e: product search bg');
+  const searchBg = await runCli(['product', 'search', queryBg, '--limit', '5']);
   if (!searchBg.results || searchBg.results.length === 0) {
     throw new Error('Bulgarian search returned no results.');
   }
@@ -90,8 +90,8 @@ async function main() {
     throw new Error('Missing product id from search.');
   }
 
-  console.log('e2e: product details');
-  const productOutput = await runCliRaw(['product', String(productId)]);
+  console.log('e2e: product show');
+  const productOutput = await runCliRaw(['product', 'show', String(productId)]);
   if (!productOutput.includes('# Description')) {
     throw new Error('Product output missing Description heading.');
   }
@@ -103,8 +103,8 @@ async function main() {
     throw new Error('Product output should contain a single YAML block.');
   }
 
-  console.log('e2e: search miss');
-  const searchMiss = await runCli(['search', queryMiss, '--limit', '5']);
+  console.log('e2e: product search miss');
+  const searchMiss = await runCli(['product', 'search', queryMiss, '--limit', '5']);
   if (!searchMiss.results || searchMiss.results.length !== 0) {
     throw new Error('Expected empty results for missing search query.');
   }
