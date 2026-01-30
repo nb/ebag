@@ -1,6 +1,6 @@
 {
   "name": "ebag",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Unofficial CLI for interacting with ebag.bg using cookie-based auth.",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",

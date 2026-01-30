@@ -93,3 +93,13 @@ npm run test:e2e
 ```bash
 npm test
 ```
+
+## Changelog
+
+### 0.1.1
+
+- Add logging in the config directory
+
+### 0.1.0
+
+- Initial release
