@@ -10,6 +10,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "capture": "node scripts/capture.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "local-install": "npm run build && TARBALL=$(npm pack --silent) && npm i -g \"$TARBALL\"",
     "prepublishOnly": "npm run build",
     "start": "node dist/cli/index.js",
@@ -45,6 +47,7 @@
   "devDependencies": {
     "@types/node": "^25.0.9",
     "playwright": "^1.57.0",
+    "prettier": "^3.8.1",
     "typescript": "^5.9.3"
   },
   "dependencies": {

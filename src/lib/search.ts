@@ -1,12 +1,19 @@
-import type { Cache, Config, ProductCacheEntry, ProductSummary, SearchResult, Session } from './types';
-import { loadCache, saveCache } from './config';
-import { requestAlgolia, requestEbag } from './client';
-import { getLists } from './lists';
+import type {
+  Cache,
+  Config,
+  ProductCacheEntry,
+  ProductSummary,
+  SearchResult,
+  Session,
+} from "./types";
+import { loadCache, saveCache } from "./config";
+import { requestAlgolia, requestEbag } from "./client";
+import { getLists } from "./lists";
 
 const DEFAULT_FACETS = [
-  'brand_name_bg',
-  'country_of_origin_bg',
-  'hierarchical_categories_bg.lv1',
+  "brand_name_bg",
+  "country_of_origin_bg",
+  "hierarchical_categories_bg.lv1",
 ];
 
 export const PRODUCT_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
@@ -21,14 +28,20 @@ export function isProductCacheFresh(
   return now - cachedAt < ttlMs;
 }
 
-function normalizeProductFromDetail(data: Record<string, unknown>): ProductSummary {
+function normalizeProductFromDetail(
+  data: Record<string, unknown>,
+): ProductSummary {
   const id = Number(data.id);
-  const name = String(data.name || '');
+  const name = String(data.name || "");
   const nameEn = data.name_en ? String(data.name_en) : undefined;
   const price = data.price ? String(data.price) : undefined;
   const pricePromo = data.price_promo ? String(data.price_promo) : undefined;
-  const currentPrice = data.current_price ? String(data.current_price) : undefined;
-  const mainImageId = data.main_image_id ? String(data.main_image_id) : undefined;
+  const currentPrice = data.current_price
+    ? String(data.current_price)
+    : undefined;
+  const mainImageId = data.main_image_id
+    ? String(data.main_image_id)
+    : undefined;
   const imageUrl = mainImageId
     ? `https://www.ebag.bg/products/images/${mainImageId}/200/webp`
     : undefined;
@@ -46,13 +59,17 @@ function normalizeProductFromDetail(data: Record<string, unknown>): ProductSumma
   };
 }
 
-function normalizeProductFromAlgolia(hit: Record<string, unknown>): ProductSummary {
+function normalizeProductFromAlgolia(
+  hit: Record<string, unknown>,
+): ProductSummary {
   const id = Number(hit.id);
-  const name = String(hit.name_bg || '');
+  const name = String(hit.name_bg || "");
   const nameEn = hit.name_en ? String(hit.name_en) : undefined;
   const price = hit.price ? String(hit.price) : undefined;
   const pricePromo = hit.price_promo ? String(hit.price_promo) : undefined;
-  const currentPrice = hit.current_price ? String(hit.current_price) : undefined;
+  const currentPrice = hit.current_price
+    ? String(hit.current_price)
+    : undefined;
   const imageUrl = hit.product_image_absolute_url
     ? String(hit.product_image_absolute_url)
     : undefined;
@@ -67,12 +84,12 @@ function normalizeProductFromAlgolia(hit: Record<string, unknown>): ProductSumma
     currentPrice,
     imageUrl,
     urlSlug,
-    source: 'algolia',
+    source: "algolia",
   };
 }
 
 function safeLower(value: string) {
-  return value.toLocaleLowerCase('bg-BG');
+  return value.toLocaleLowerCase("bg-BG");
 }
 
 async function fetchProductDetail(
@@ -117,7 +134,7 @@ async function getProductWithCache(
 ) {
   const cached = cache.products[String(productId)];
   if (cached) {
-    if ('product' in cached) {
+    if ("product" in cached) {
       const entry = cached as ProductCacheEntry;
       if (isProductCacheFresh(entry)) {
         return entry.product;
@@ -167,12 +184,12 @@ async function searchInLists(
   return products
     .map((product) => ({
       ...product,
-      source: 'list' as const,
+      source: "list" as const,
       listNames: productIdToLists.get(product.id) || [],
     }))
     .filter((product) => {
-      const name = safeLower(product.name || '');
-      const nameEn = product.nameEn ? safeLower(product.nameEn) : '';
+      const name = safeLower(product.name || "");
+      const nameEn = product.nameEn ? safeLower(product.nameEn) : "";
       return name.includes(needle) || nameEn.includes(needle);
     });
 }
@@ -184,12 +201,12 @@ async function searchAlgolia(
   hitsPerPage: number,
 ): Promise<ProductSummary[]> {
   const params = new URLSearchParams({
-    clickAnalytics: 'true',
+    clickAnalytics: "true",
     facets: JSON.stringify(DEFAULT_FACETS),
-    filters: '',
-    highlightPostTag: '__/ais-highlight__',
-    highlightPreTag: '__ais-highlight__',
-    maxValuesPerFacet: '50',
+    filters: "",
+    highlightPostTag: "__/ais-highlight__",
+    highlightPreTag: "__ais-highlight__",
+    maxValuesPerFacet: "50",
     page: String(page),
     query,
     hitsPerPage: String(hitsPerPage),
@@ -198,16 +215,15 @@ async function searchAlgolia(
   const body = {
     requests: [
       {
-        indexName: 'products',
+        indexName: "products",
         params: params.toString(),
       },
     ],
   };
 
-  const result = await requestAlgolia<{ results: Array<{ hits: Record<string, unknown>[] }> }>(
-    config,
-    body,
-  );
+  const result = await requestAlgolia<{
+    results: Array<{ hits: Record<string, unknown>[] }>;
+  }>(config, body);
 
   const hits = result.data.results?.[0]?.hits || [];
   return hits.map(normalizeProductFromAlgolia);

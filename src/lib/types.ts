@@ -8,7 +8,7 @@ export type ProductSummary = {
   currency?: string;
   imageUrl?: string;
   urlSlug?: string;
-  source?: 'list' | 'algolia';
+  source?: "list" | "algolia";
   listNames?: string[];
 };
 

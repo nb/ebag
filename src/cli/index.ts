@@ -1,17 +1,27 @@
 #!/usr/bin/env node
-import fs from 'node:fs';
-import path from 'node:path';
-import { Command } from 'commander';
-import { addToCart, getCart, updateCart } from '../lib/cart';
-import { getLoginInstructions, validateSession } from '../lib/auth';
-import { normalizeCookieInput, validateCookieInput } from '../lib/cookies';
-import { getConfigDir, loadConfig, loadSession, saveSession } from '../lib/config';
-import { getListItems, getLists, addToList } from '../lib/lists';
-import { getOrderDetail, getTimeSlots, listOrders } from '../lib/orders';
-import { getProductById } from '../lib/products';
-import { searchProducts } from '../lib/search';
-import { formatLoadPercent, formatSlotRange, normalizeSlots, sortSlots } from '../lib/slots';
-import { appendLog } from '../lib/log';
+import fs from "node:fs";
+import path from "node:path";
+import { Command } from "commander";
+import { addToCart, getCart, updateCart } from "../lib/cart";
+import { getLoginInstructions, validateSession } from "../lib/auth";
+import { normalizeCookieInput, validateCookieInput } from "../lib/cookies";
+import {
+  getConfigDir,
+  loadConfig,
+  loadSession,
+  saveSession,
+} from "../lib/config";
+import { getListItems, getLists, addToList } from "../lib/lists";
+import { getOrderDetail, getTimeSlots, listOrders } from "../lib/orders";
+import { getProductById } from "../lib/products";
+import { searchProducts } from "../lib/search";
+import {
+  formatLoadPercent,
+  formatSlotRange,
+  normalizeSlots,
+  sortSlots,
+} from "../lib/slots";
+import { appendLog } from "../lib/log";
 import {
   formatHeading,
   outputJson,
@@ -20,12 +30,14 @@ import {
   outputOrdersList,
   outputProducts,
   outputProductDetail,
-} from './format';
+} from "./format";
 
 function requireSessionCookie() {
   const session = loadSession();
   if (!session.cookies) {
-    throw new Error('No session cookie found. Run `ebag login --cookie "<cookie>"` first.');
+    throw new Error(
+      'No session cookie found. Run `ebag login --cookie "<cookie>"` first.',
+    );
   }
   return session;
 }
@@ -40,35 +52,37 @@ function formatError(err: unknown) {
 
 async function main() {
   const program = new Command();
-  let lastCommand = 'unknown';
+  let lastCommand = "unknown";
   let lastArgs: string[] = [];
   let lastStart = Date.now();
 
   function getPackageVersion() {
     try {
-      const packagePath = path.resolve(__dirname, '../../package.json');
-      const raw = fs.readFileSync(packagePath, 'utf8');
+      const packagePath = path.resolve(__dirname, "../../package.json");
+      const raw = fs.readFileSync(packagePath, "utf8");
       const parsed = JSON.parse(raw) as { version?: string };
-      return parsed.version || 'unknown';
+      return parsed.version || "unknown";
     } catch {
-      return 'unknown';
+      return "unknown";
     }
   }
 
   program
-    .name('ebag')
-    .description('CLI for interacting with ebag.bg')
-    .version(getPackageVersion(), '-v, --version', 'Show CLI version')
-    .option('--json', 'Output JSON');
+    .name("ebag")
+    .description("CLI for interacting with ebag.bg")
+    .version(getPackageVersion(), "-v, --version", "Show CLI version")
+    .option("--json", "Output JSON");
 
-  program.hook('preAction', (_thisCommand: Command, actionCommand: Command) => {
+  program.hook("preAction", (_thisCommand: Command, actionCommand: Command) => {
     lastStart = Date.now();
-    const commandPath = (actionCommand as Command & { commandPath?: () => string }).commandPath?.();
-    lastCommand = commandPath || actionCommand.name() || 'unknown';
+    const commandPath = (
+      actionCommand as Command & { commandPath?: () => string }
+    ).commandPath?.();
+    lastCommand = commandPath || actionCommand.name() || "unknown";
     lastArgs = process.argv.slice(2);
     appendLog({
-      level: 'info',
-      event: 'command.start',
+      level: "info",
+      event: "command.start",
       command: lastCommand,
       args: lastArgs,
       json: Boolean(program.opts().json),
@@ -80,11 +94,11 @@ async function main() {
     });
   });
 
-  program.hook('postAction', () => {
+  program.hook("postAction", () => {
     const durationMs = Date.now() - lastStart;
     appendLog({
-      level: 'info',
-      event: 'command.finish',
+      level: "info",
+      event: "command.finish",
       command: lastCommand,
       args: lastArgs,
       json: Boolean(program.opts().json),
@@ -95,9 +109,9 @@ async function main() {
   });
 
   program
-    .command('login')
-    .description('Store session cookie and validate it')
-    .option('--cookie <cookie>', 'Cookie header value from browser')
+    .command("login")
+    .description("Store session cookie and validate it")
+    .option("--cookie <cookie>", "Cookie header value from browser")
     .action(async (options) => {
       const config = loadConfig();
       const json = program.opts().json as boolean | undefined;
@@ -114,7 +128,9 @@ async function main() {
       const normalizedCookie = normalizeCookieInput(options.cookie as string);
       const cookieError = validateCookieInput(normalizedCookie);
       if (cookieError) {
-        throw new Error(`${cookieError} Run \`ebag login --cookie "<cookie>"\` with a Cookie header value.`);
+        throw new Error(
+          `${cookieError} Run \`ebag login --cookie "<cookie>"\` with a Cookie header value.`,
+        );
       }
 
       try {
@@ -127,18 +143,18 @@ async function main() {
           (user as { email?: string; username?: string }).email ||
           (user as { email?: string; username?: string }).username;
         if (!email) {
-          throw new Error('Session validated but no user email was returned.');
+          throw new Error("Session validated but no user email was returned.");
         }
         saveSession(session);
         if (json) {
-          outputJson({ status: 'ok', user, email });
+          outputJson({ status: "ok", user, email });
         } else {
-          process.stdout.write('Login session validated and saved.\n');
+          process.stdout.write("Login session validated and saved.\n");
           process.stdout.write(`Logged in as: ${email}\n`);
         }
       } catch (err) {
         if (json) {
-          outputJson({ status: 'error', message: (err as Error).message });
+          outputJson({ status: "error", message: (err as Error).message });
         } else {
           process.stderr.write(`Login failed: ${(err as Error).message}\n`);
         }
@@ -146,8 +162,8 @@ async function main() {
     });
 
   program
-    .command('status')
-    .description('Show current login status')
+    .command("status")
+    .description("Show current login status")
     .action(async () => {
       const config = loadConfig();
       const json = program.opts().json as boolean | undefined;
@@ -155,20 +171,22 @@ async function main() {
 
       if (!session.cookies) {
         if (json) {
-          outputJson({ status: 'logged_out' });
+          outputJson({ status: "logged_out" });
         } else {
-          process.stdout.write('Logged out (no session cookie).\n');
+          process.stdout.write("Logged out (no session cookie).\n");
         }
         return;
       }
 
       try {
         const user = await validateSession(config, session);
-        const email = (user as { email?: string; username?: string }).email || (user as { email?: string; username?: string }).username;
+        const email =
+          (user as { email?: string; username?: string }).email ||
+          (user as { email?: string; username?: string }).username;
         if (json) {
-          outputJson({ status: 'logged_in', user, email });
+          outputJson({ status: "logged_in", user, email });
         } else {
-          process.stdout.write('Logged in.\n');
+          process.stdout.write("Logged in.\n");
           if (email) {
             process.stdout.write(`Email: ${email}\n`);
           }
@@ -177,9 +195,9 @@ async function main() {
         const error = err as Error & { status?: number };
         if (error.status && [401, 403].includes(error.status)) {
           if (json) {
-            outputJson({ status: 'logged_out' });
+            outputJson({ status: "logged_out" });
           } else {
-            process.stdout.write('Logged out.\n');
+            process.stdout.write("Logged out.\n");
           }
           return;
         }
@@ -188,9 +206,9 @@ async function main() {
     });
 
   program
-    .command('slots')
-    .description('Show the next available delivery slots')
-    .option('--limit <n>', 'Limit number of slots', '10')
+    .command("slots")
+    .description("Show the next available delivery slots")
+    .option("--limit <n>", "Limit number of slots", "10")
     .action(async (options) => {
       const config = loadConfig();
       const session = requireSessionCookie();
@@ -198,7 +216,9 @@ async function main() {
       const limit = Number(options.limit);
 
       const slotsPayload = await getTimeSlots(config, session);
-      const slots = normalizeSlots(slotsPayload).filter((slot) => slot.isAvailable);
+      const slots = normalizeSlots(slotsPayload).filter(
+        (slot) => slot.isAvailable,
+      );
       slots.sort(sortSlots);
       const limited = slots.slice(0, Number.isFinite(limit) ? limit : 10);
 
@@ -207,7 +227,7 @@ async function main() {
         return;
       }
       if (!limited.length) {
-        process.stdout.write('No available delivery slots.\n');
+        process.stdout.write("No available delivery slots.\n");
         return;
       }
       const today = new Date();
@@ -216,7 +236,7 @@ async function main() {
       tomorrow.setDate(today.getDate() + 1);
       const tomorrowDate = tomorrow.toISOString().slice(0, 10);
 
-      let currentDate = '';
+      let currentDate = "";
       let printedHeader = false;
       for (const slot of limited) {
         if (slot.date !== currentDate) {
@@ -227,8 +247,10 @@ async function main() {
           } else if (currentDate === tomorrowDate) {
             label = `Tomorrow (${currentDate})`;
           }
-          const headerPrefix = printedHeader ? '\n' : '';
-          process.stdout.write(`${headerPrefix}${formatHeading(`# ${label}`)}\n`);
+          const headerPrefix = printedHeader ? "\n" : "";
+          process.stdout.write(
+            `${headerPrefix}${formatHeading(`# ${label}`)}\n`,
+          );
           printedHeader = true;
         }
         process.stdout.write(
@@ -237,13 +259,13 @@ async function main() {
       }
     });
 
-  const product = program.command('product').description('Product operations');
+  const product = program.command("product").description("Product operations");
   product
-    .command('search')
-    .description('Search for products')
-    .argument('<query>', 'Search query')
-    .option('--limit <n>', 'Limit number of results', '20')
-    .option('--page <n>', 'Algolia page number (0-based)', '0')
+    .command("search")
+    .description("Search for products")
+    .argument("<query>", "Search query")
+    .option("--limit <n>", "Limit number of results", "20")
+    .option("--page <n>", "Algolia page number (0-based)", "0")
     .action(async (query, options) => {
       const config = loadConfig();
       const session = loadSession();
@@ -251,7 +273,10 @@ async function main() {
       const limit = Number(options.limit);
       const page = Number(options.page);
 
-      const result = await searchProducts(config, session, query, { limit, page });
+      const result = await searchProducts(config, session, query, {
+        limit,
+        page,
+      });
       if (json) {
         outputJson(result);
       } else {
@@ -260,9 +285,9 @@ async function main() {
     });
 
   product
-    .command('show')
-    .description('Get product details by ID')
-    .argument('<productId>', 'Product ID')
+    .command("show")
+    .description("Get product details by ID")
+    .argument("<productId>", "Product ID")
     .action(async (productId) => {
       const config = loadConfig();
       const session = loadSession();
@@ -276,14 +301,14 @@ async function main() {
       }
     });
 
-  const order = program.command('order').description('Order operations');
+  const order = program.command("order").description("Order operations");
   order
-    .command('list')
-    .description('List recent orders')
-    .option('--limit <n>', 'Limit number of results', '10')
-    .option('--page <n>', 'Page number')
-    .option('--from <date>', 'Filter from date (YYYY-MM-DD)')
-    .option('--to <date>', 'Filter to date (YYYY-MM-DD)')
+    .command("list")
+    .description("List recent orders")
+    .option("--limit <n>", "Limit number of results", "10")
+    .option("--page <n>", "Page number")
+    .option("--from <date>", "Filter from date (YYYY-MM-DD)")
+    .option("--to <date>", "Filter to date (YYYY-MM-DD)")
     .action(async (options) => {
       const config = loadConfig();
       const session = requireSessionCookie();
@@ -302,16 +327,16 @@ async function main() {
       if (json) {
         outputJson(result);
       } else if (!result.results.length) {
-        process.stdout.write('No orders found.\n');
+        process.stdout.write("No orders found.\n");
       } else {
         outputOrdersList(result.results);
       }
     });
 
   order
-    .command('show')
-    .description('Show order details')
-    .argument('<orderId>', 'Order ID')
+    .command("show")
+    .description("Show order details")
+    .argument("<orderId>", "Order ID")
     .action(async (orderId) => {
       const config = loadConfig();
       const session = requireSessionCookie();
@@ -325,11 +350,11 @@ async function main() {
       }
     });
 
-  const cart = program.command('cart').description('Cart operations');
+  const cart = program.command("cart").description("Cart operations");
   cart
-    .command('add')
-    .argument('<productId>', 'Product ID')
-    .option('--qty <n>', 'Quantity', '1')
+    .command("add")
+    .argument("<productId>", "Product ID")
+    .option("--qty <n>", "Quantity", "1")
     .action(async (productId, options) => {
       const config = loadConfig();
       const session = requireSessionCookie();
@@ -340,14 +365,14 @@ async function main() {
       if (json) {
         outputJson(result);
       } else {
-        process.stdout.write('Added to cart.\n');
+        process.stdout.write("Added to cart.\n");
       }
     });
 
   cart
-    .command('update')
-    .argument('<productId>', 'Product ID')
-    .option('--qty <n>', 'Quantity', '1')
+    .command("update")
+    .argument("<productId>", "Product ID")
+    .option("--qty <n>", "Quantity", "1")
     .action(async (productId, options) => {
       const config = loadConfig();
       const session = requireSessionCookie();
@@ -358,13 +383,13 @@ async function main() {
       if (json) {
         outputJson(result);
       } else {
-        process.stdout.write('Cart updated.\n');
+        process.stdout.write("Cart updated.\n");
       }
     });
 
   cart
-    .command('show')
-    .description('Show cart contents')
+    .command("show")
+    .description("Show cart contents")
     .action(async () => {
       const config = loadConfig();
       const session = requireSessionCookie();
@@ -389,8 +414,12 @@ async function main() {
             quantity?: number;
             qty?: number;
           };
-          const id = entry.product?.id ?? entry.product_id ?? entry.productId ?? entry.id;
-          const name = entry.product?.name ?? entry.name ?? 'Unknown';
+          const id =
+            entry.product?.id ??
+            entry.product_id ??
+            entry.productId ??
+            entry.id;
+          const name = entry.product?.name ?? entry.name ?? "Unknown";
           const count = entry.quantity ?? entry.qty;
           if (!id) return null;
           return { id: Number(id), name, count };
@@ -399,72 +428,79 @@ async function main() {
       if (listItems.length) {
         outputList(listItems);
       } else {
-        process.stdout.write('Cart is empty.\n');
+        process.stdout.write("Cart is empty.\n");
       }
     });
 
-  const list = program.command('list').description('List operations');
+  const list = program.command("list").description("List operations");
   list
-    .command('show')
-    .description('Show your lists')
-    .argument('[listId]', 'List ID')
+    .command("show")
+    .description("Show your lists")
+    .argument("[listId]", "List ID")
     .action(async (listId) => {
       const config = loadConfig();
       const session = requireSessionCookie();
       const json = program.opts().json as boolean | undefined;
 
       const lists = await getLists(config, session);
-        if (listId) {
-          const listEntry = lists.find((item) => Number(item.id) === Number(listId));
-          if (!listEntry) {
-            throw new Error(`List ${listId} not found.`);
-          }
-          const listItems = await getListItems(config, session, Number(listId));
-          const results = Array.isArray((listItems as { results?: unknown }).results)
-            ? ((listItems as { results?: unknown[] }).results as unknown[])
-            : [];
-          const count =
-            typeof (listItems as { count?: number }).count === 'number'
-              ? (listItems as { count?: number }).count
-              : results.length;
-          if (json) {
-            outputJson({
-              ...listEntry,
-              count,
-              items: results,
-              next: (listItems as { next?: unknown }).next ?? null,
-              previous: (listItems as { previous?: unknown }).previous ?? null,
-            });
-          } else {
-            process.stdout.write(`${listEntry.name} (${listEntry.id})`);
-            if (!count) {
-              process.stdout.write(' - empty\n');
-              return;
-            }
-            process.stdout.write(` - ${count} items\n`);
-            const outputItems = results
-              .map((item) => {
-                const entry = item as {
-                  product?: { id?: number; name?: string };
-                  product_id?: number;
-                  productId?: number;
-                  id?: number;
-                  name?: string;
-                  quantity?: number;
-                  qty?: number;
-                };
-                const product = entry.product as { id?: number; name?: string } | undefined;
-                const id = product?.id ?? entry.product_id ?? entry.productId ?? entry.id;
-                const name = product?.name ?? entry.name ?? 'Unknown';
-                const itemCount = entry.quantity ?? entry.qty;
-                if (!id) return null;
-                return { id: Number(id), name, count: itemCount };
-              })
-              .filter(Boolean) as { id: number; name: string; count?: number }[];
-            outputList(outputItems);
-          }
-          return;
+      if (listId) {
+        const listEntry = lists.find(
+          (item) => Number(item.id) === Number(listId),
+        );
+        if (!listEntry) {
+          throw new Error(`List ${listId} not found.`);
         }
+        const listItems = await getListItems(config, session, Number(listId));
+        const results = Array.isArray(
+          (listItems as { results?: unknown }).results,
+        )
+          ? ((listItems as { results?: unknown[] }).results as unknown[])
+          : [];
+        const count =
+          typeof (listItems as { count?: number }).count === "number"
+            ? (listItems as { count?: number }).count
+            : results.length;
+        if (json) {
+          outputJson({
+            ...listEntry,
+            count,
+            items: results,
+            next: (listItems as { next?: unknown }).next ?? null,
+            previous: (listItems as { previous?: unknown }).previous ?? null,
+          });
+        } else {
+          process.stdout.write(`${listEntry.name} (${listEntry.id})`);
+          if (!count) {
+            process.stdout.write(" - empty\n");
+            return;
+          }
+          process.stdout.write(` - ${count} items\n`);
+          const outputItems = results
+            .map((item) => {
+              const entry = item as {
+                product?: { id?: number; name?: string };
+                product_id?: number;
+                productId?: number;
+                id?: number;
+                name?: string;
+                quantity?: number;
+                qty?: number;
+              };
+              const product = entry.product as
+                | { id?: number; name?: string }
+                | undefined;
+              const id =
+                product?.id ?? entry.product_id ?? entry.productId ?? entry.id;
+              const name = product?.name ?? entry.name ?? "Unknown";
+              const itemCount = entry.quantity ?? entry.qty;
+              if (!id) return null;
+              return { id: Number(id), name, count: itemCount };
+            })
+            .filter(Boolean) as { id: number; name: string; count?: number }[];
+          outputList(outputItems);
+        }
+        return;
+      }
 
       if (json) {
         outputJson(lists);
@@ -480,21 +516,27 @@ async function main() {
     });
 
   list
-    .command('add')
-    .argument('<listId>', 'List ID')
-    .argument('<productId>', 'Product ID')
-    .option('--qty <n>', 'Quantity', '1')
+    .command("add")
+    .argument("<listId>", "List ID")
+    .argument("<productId>", "Product ID")
+    .option("--qty <n>", "Quantity", "1")
     .action(async (listId, productId, options) => {
       const config = loadConfig();
       const session = requireSessionCookie();
       const json = program.opts().json as boolean | undefined;
       const qty = Number(options.qty);
 
-      const result = await addToList(config, session, Number(listId), Number(productId), qty);
+      const result = await addToList(
+        config,
+        session,
+        Number(listId),
+        Number(productId),
+        qty,
+      );
       if (json) {
         outputJson(result);
       } else {
-        process.stdout.write('Added to list.\n');
+        process.stdout.write("Added to list.\n");
       }
     });
 
@@ -502,10 +544,15 @@ async function main() {
     await program.parseAsync(process.argv);
   } catch (err) {
     const json = program.opts().json as boolean | undefined;
-    const error = err as Error & { status?: number; body?: string; url?: string; method?: string };
+    const error = err as Error & {
+      status?: number;
+      body?: string;
+      url?: string;
+      method?: string;
+    };
     appendLog({
-      level: 'error',
-      event: 'command.error',
+      level: "error",
+      event: "command.error",
       command: lastCommand,
       args: lastArgs,
       json: Boolean(json),
@@ -519,7 +566,7 @@ async function main() {
       method: error.method,
     });
     if (json) {
-      outputJson({ status: 'error', ...formatError(err) });
+      outputJson({ status: "error", ...formatError(err) });
     } else {
       const details = formatError(err);
       process.stderr.write(`${details.message}\n`);

@@ -1,14 +1,14 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { getLogPath } from './config';
+import fs from "node:fs";
+import path from "node:path";
+import { getLogPath } from "./config";
 
 export type LogEntry = {
   event: string;
-  level?: 'info' | 'error';
+  level?: "info" | "error";
   [key: string]: unknown;
 };
 
-const SENSITIVE_KEYS = ['cookie', 'authorization', 'x-csrftoken'];
+const SENSITIVE_KEYS = ["cookie", "authorization", "x-csrftoken"];
 
 function ensureDir(dir: string) {
   fs.mkdirSync(dir, { recursive: true });
@@ -16,34 +16,40 @@ function ensureDir(dir: string) {
 
 function isSensitiveKey(key: string) {
   const lower = key.toLowerCase();
-  return SENSITIVE_KEYS.some((token) => lower === token || lower.includes(token));
+  return SENSITIVE_KEYS.some(
+    (token) => lower === token || lower.includes(token),
+  );
 }
 
 function looksLikeCookie(value: string) {
-  if (value.includes('csrftoken=') || value.includes('sessionid=') || value.includes('cookie=')) {
+  if (
+    value.includes("csrftoken=") ||
+    value.includes("sessionid=") ||
+    value.includes("cookie=")
+  ) {
     return true;
   }
-  return value.includes('=') && value.includes(';');
+  return value.includes("=") && value.includes(";");
 }
 
 export function redactHeaders(headers: Record<string, string> | undefined) {
   if (!headers) return undefined;
   const redacted: Record<string, string> = {};
   for (const [key, value] of Object.entries(headers)) {
-    redacted[key] = isSensitiveKey(key) ? '[redacted]' : value;
+    redacted[key] = isSensitiveKey(key) ? "[redacted]" : value;
   }
   return redacted;
 }
 
 function sanitizeValue(value: unknown, seen: WeakSet<object>): unknown {
-  if (typeof value === 'string') {
-    return looksLikeCookie(value) ? '[redacted]' : value;
+  if (typeof value === "string") {
+    return looksLikeCookie(value) ? "[redacted]" : value;
   }
-  if (!value || typeof value !== 'object') {
+  if (!value || typeof value !== "object") {
     return value;
   }
   if (seen.has(value)) {
-    return '[circular]';
+    return "[circular]";
   }
   seen.add(value);
   if (Array.isArray(value)) {
@@ -52,7 +58,7 @@ function sanitizeValue(value: unknown, seen: WeakSet<object>): unknown {
   const output: Record<string, unknown> = {};
   for (const [key, entry] of Object.entries(value)) {
     if (isSensitiveKey(key)) {
-      output[key] = '[redacted]';
+      output[key] = "[redacted]";
       continue;
     }
     output[key] = sanitizeValue(entry, seen);
@@ -75,19 +81,19 @@ function formatEntry(entry: Record<string, unknown>) {
     ...entry,
   };
   const orderedKeys = [
-    'ts',
-    'level',
-    'event',
-    'command',
-    'args',
-    'json',
-    'pid',
-    'ppid',
-    'cwd',
-    'node',
-    'configDir',
-    'exitCode',
-    'durationMs',
+    "ts",
+    "level",
+    "event",
+    "command",
+    "args",
+    "json",
+    "pid",
+    "ppid",
+    "cwd",
+    "node",
+    "configDir",
+    "exitCode",
+    "durationMs",
   ];
   const seen = new Set(orderedKeys);
   const pairs: string[] = [];
@@ -103,7 +109,7 @@ function formatEntry(entry: Record<string, unknown>) {
       pairs.push(`${key}=${formatValue(value)}`);
     }
   }
-  return pairs.join(' ');
+  return pairs.join(" ");
 }
 
 export function appendLog(entry: LogEntry) {
@@ -111,7 +117,7 @@ export function appendLog(entry: LogEntry) {
     const logPath = getLogPath();
     ensureDir(path.dirname(logPath));
     const line = formatEntry(sanitizeEntry(entry));
-    fs.appendFileSync(logPath, `${line}\n`, 'utf8');
+    fs.appendFileSync(logPath, `${line}\n`, "utf8");
   } catch {
     // Logging must never crash the CLI.
   }

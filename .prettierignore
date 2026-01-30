@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.caches/
+captures/
+.claude/
+.cursor/
+.tmp/
+*.tgz
+package-lock.json

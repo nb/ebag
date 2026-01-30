@@ -1,31 +1,34 @@
-import assert from 'node:assert/strict';
-import { normalizeCookieInput, validateCookieInput } from '../dist/lib/cookies.js';
+import assert from "node:assert/strict";
+import {
+  normalizeCookieInput,
+  validateCookieInput,
+} from "../dist/lib/cookies.js";
 
-assert.equal(normalizeCookieInput('  a=b; c=d  '), 'a=b; c=d');
-assert.equal(normalizeCookieInput('Cookie: a=b; c=d'), 'a=b; c=d');
-assert.equal(normalizeCookieInput('cookie: a=b'), 'a=b');
+assert.equal(normalizeCookieInput("  a=b; c=d  "), "a=b; c=d");
+assert.equal(normalizeCookieInput("Cookie: a=b; c=d"), "a=b; c=d");
+assert.equal(normalizeCookieInput("cookie: a=b"), "a=b");
 
-assert.equal(validateCookieInput(''), 'Cookie value is empty.');
+assert.equal(validateCookieInput(""), "Cookie value is empty.");
 assert.equal(
-  validateCookieInput('a=b\nc=d'),
-  'Cookie value should be a single header line without newlines.',
+  validateCookieInput("a=b\nc=d"),
+  "Cookie value should be a single header line without newlines.",
 );
 assert.equal(
-  validateCookieInput('invalid'),
+  validateCookieInput("invalid"),
   'Cookie value should look like "name=value" pairs from the Cookie header.',
 );
 assert.equal(
-  validateCookieInput('baba'),
+  validateCookieInput("baba"),
   'Cookie value should look like "name=value" pairs from the Cookie header.',
 );
 assert.equal(
-  validateCookieInput('a='),
+  validateCookieInput("a="),
   'Cookie value should look like "name=value" pairs from the Cookie header.',
 );
 assert.equal(
-  validateCookieInput('=b'),
+  validateCookieInput("=b"),
   'Cookie value should look like "name=value" pairs from the Cookie header.',
 );
-assert.equal(validateCookieInput('a=b; c=d'), null);
+assert.equal(validateCookieInput("a=b; c=d"), null);
 
-console.log('cookie.test ok');
+console.log("cookie.test ok");

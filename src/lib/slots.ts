@@ -1,11 +1,11 @@
-import type { DeliverySlot } from './types';
+import type { DeliverySlot } from "./types";
 
 export function normalizeSlots(data: Record<string, unknown>): DeliverySlot[] {
   const slots: DeliverySlot[] = [];
   for (const [date, entries] of Object.entries(data)) {
     if (!Array.isArray(entries)) continue;
     for (const entry of entries) {
-      if (!entry || typeof entry !== 'object') continue;
+      if (!entry || typeof entry !== "object") continue;
       const slot = entry as {
         key?: string;
         start?: number;
@@ -36,7 +36,7 @@ export function normalizeSlots(data: Record<string, unknown>): DeliverySlot[] {
 }
 
 export function formatSlotTime(value: number) {
-  const padded = String(Math.trunc(value)).padStart(4, '0');
+  const padded = String(Math.trunc(value)).padStart(4, "0");
   const hours = padded.slice(0, 2);
   const minutes = padded.slice(2);
   return `${hours}:${minutes}`;
@@ -47,7 +47,7 @@ export function formatSlotRange(start: number, end: number) {
 }
 
 export function formatLoadPercent(value: number) {
-  if (!Number.isFinite(value)) return '0%';
+  if (!Number.isFinite(value)) return "0%";
   const rounded = Math.round(value * 10) / 10;
   return Number.isInteger(rounded) ? `${rounded}%` : `${rounded.toFixed(1)}%`;
 }
