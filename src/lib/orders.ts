@@ -8,6 +8,7 @@ import type {
 } from "./types";
 import { loadCache, saveCache } from "./config";
 import { requestEbag } from "./client";
+import { logUnknownOrderStatus } from "./order-status";
 
 export async function getTimeSlots(
   config: Config,
@@ -60,20 +61,29 @@ function normalizeOrderSummary(entry: Record<string, unknown>): OrderSummary {
     }
     return undefined;
   };
+  const orderId = entry.encrypted_id ? String(entry.encrypted_id) : "";
+  const status = parseNumber(entry.order_status);
+  const statusText = entry.order_status_pharmacy
+    ? String(entry.order_status_pharmacy)
+    : entry.order_status_text
+      ? String(entry.order_status_text)
+      : null;
+  logUnknownOrderStatus({
+    status,
+    statusText,
+    orderId,
+    source: "list",
+  });
   return {
-    id: entry.encrypted_id ? String(entry.encrypted_id) : "",
+    id: orderId,
     shippingDate: entry.shipping_date ? String(entry.shipping_date) : undefined,
     timeSlotStart: parseNumber(entry.time_slot_start),
     timeSlotEnd: parseNumber(entry.time_slot_end),
     timeSlotDisplay: entry.time_slot_display
       ? String(entry.time_slot_display)
       : undefined,
-    status: parseNumber(entry.order_status),
-    statusText: entry.order_status_pharmacy
-      ? String(entry.order_status_pharmacy)
-      : entry.order_status_text
-        ? String(entry.order_status_text)
-        : null,
+    status,
+    statusText,
     finalAmount: entry.final_amount ? String(entry.final_amount) : undefined,
     finalAmountEur: entry.final_amount_eur
       ? String(entry.final_amount_eur)
@@ -165,16 +175,25 @@ function normalizeOrderDetail(payload: OrderDetailApiResponse): OrderDetail {
     ? (order.additional_orders as OrderDetailApiResponse[])
     : [];
 
+  const orderId = order.encrypted_id ? String(order.encrypted_id) : "";
+  const status = parseNumber(order.order_status);
+  const statusText = order.order_status_pharmacy
+    ? String(order.order_status_pharmacy)
+    : order.order_status_text
+      ? String(order.order_status_text)
+      : order.pay_button_text
+        ? String(order.pay_button_text)
+        : null;
+  logUnknownOrderStatus({
+    status,
+    statusText,
+    orderId,
+    source: "detail",
+  });
   return {
-    id: order.encrypted_id ? String(order.encrypted_id) : "",
-    status: parseNumber(order.order_status),
-    statusText: order.order_status_pharmacy
-      ? String(order.order_status_pharmacy)
-      : order.order_status_text
-        ? String(order.order_status_text)
-        : order.pay_button_text
-          ? String(order.pay_button_text)
-          : null,
+    id: orderId,
+    status,
+    statusText,
     shippingDate: order.shipping_date ? String(order.shipping_date) : undefined,
     timeSlotDisplay: order.timeslot_display
       ? String(order.timeslot_display)

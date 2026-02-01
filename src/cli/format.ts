@@ -159,19 +159,18 @@ function formatDateInTimeZone(date: Date, timeZone: string) {
   return `${year}-${month}-${day}`;
 }
 
+const ORDER_STATUS_LABELS: Record<number, string> = {
+  0: "Нова",
+  3: "Отказана",
+  4: "Завършена",
+};
+
 function formatOrderStatus(order: OrderSummary | OrderDetail) {
   const status = order.status;
-  if (status === 3) return "Отказана";
-  if (status === 4) {
-    const date = order.shippingDate ? formatDate(order.shippingDate) : "";
-    const todayDate = formatDateInTimeZone(new Date(), "Europe/Sofia");
-    if (date && date >= todayDate) return "Нова";
-    return "Завършена";
-  }
-  if (status !== undefined) {
-    return `Status ${status}`;
-  }
-  return "";
+  if (status === undefined) return "";
+  const label = ORDER_STATUS_LABELS[status];
+  if (label) return label;
+  return `Status ${status}`;
 }
 
 export function outputOrdersList(orders: OrderSummary[]) {

@@ -31,6 +31,7 @@ import {
   outputProducts,
   outputProductDetail,
 } from "./format";
+import { warnUnknownOrderStatuses } from "./warnings";
 
 function requireSessionCookie() {
   const session = loadSession();
@@ -324,6 +325,7 @@ async function main() {
         from,
         to,
       });
+      warnUnknownOrderStatuses(result.results);
       if (json) {
         outputJson(result);
       } else if (!result.results.length) {
@@ -343,6 +345,7 @@ async function main() {
       const json = program.opts().json as boolean | undefined;
 
       const detail = await getOrderDetail(config, session, String(orderId));
+      warnUnknownOrderStatuses([detail]);
       if (json) {
         outputJson(detail);
       } else {

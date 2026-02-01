@@ -16,33 +16,13 @@ function captureOutput(fn) {
   return output;
 }
 
-const RealDate = Date;
-const fixedNow = new RealDate("2026-01-28T10:00:00Z");
-global.Date = class extends RealDate {
-  constructor(...args) {
-    if (args.length === 0) {
-      return new RealDate(fixedNow);
-    }
-    return new RealDate(...args);
-  }
-  static now() {
-    return fixedNow.getTime();
-  }
-  static parse(value) {
-    return RealDate.parse(value);
-  }
-  static UTC(...args) {
-    return RealDate.UTC(...args);
-  }
-};
-
 const listOutput = captureOutput(() =>
   outputOrdersList([
     {
       id: "ORDER-NEW",
       shippingDate: "2026-01-28",
       timeSlotDisplay: "от 10:00 до 11:00",
-      status: 4,
+      status: 0,
       finalAmountEur: "12.34",
     },
     {
@@ -93,7 +73,5 @@ const detailOutput = captureOutput(() =>
 assert.match(detailOutput, /Status: Отказана/);
 assert.match(detailOutput, /Address: София, кв\. Център, ул\. Тест 1/);
 assert.match(detailOutput, /Тест продукт/);
-
-global.Date = RealDate;
 
 console.log("orders.test ok");

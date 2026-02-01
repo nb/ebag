@@ -27,6 +27,7 @@ Notes:
 - Session data is stored in plain text at `~/.config/ebag/session.json` with owner-only permissions (`0600`).
 - List-based search caches product details in `~/.config/ebag/cache.json` for up to 6 hours.
 - Completed orders may be cached locally for faster access.
+- Unknown order statuses will warn on stderr with the website status text (when available) and a link to file a GitHub issue.
 
 ## Products
 
