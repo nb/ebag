@@ -21,14 +21,10 @@ const warningOutput = captureStderr(() =>
     {
       id: "ORDER-UNKNOWN",
       status: 99,
-      statusText: "Нова",
     },
   ]),
 );
-assert.match(
-  warningOutput,
-  /Unknown order status \(Нова\) for order ORDER-UNKNOWN/,
-);
+assert.match(warningOutput, /Unknown order status for order ORDER-UNKNOWN/);
 assert.match(warningOutput, /https:\/\/github\.com\/nb\/ebag\/issues/);
 
 const noWarningOutput = captureStderr(() =>
@@ -36,7 +32,6 @@ const noWarningOutput = captureStderr(() =>
     {
       id: "ORDER-KNOWN",
       status: 0,
-      statusText: "Нова",
     },
   ]),
 );

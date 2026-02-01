@@ -89,7 +89,7 @@ export type OrderSummary = {
   timeSlotEnd?: number;
   timeSlotDisplay?: string;
   status?: number;
-  statusText?: string | null;
+  statusDescription?: string;
   finalAmount?: string;
   finalAmountEur?: string;
   additionalOrdersCount?: number;
@@ -111,7 +111,7 @@ export type OrderItem = {
 export type OrderDetail = {
   id: string;
   status?: number;
-  statusText?: string | null;
+  statusDescription?: string;
   shippingDate?: string;
   timeSlotDisplay?: string;
   address?: string;

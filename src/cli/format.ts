@@ -1,3 +1,4 @@
+import { describeOrderStatus } from "../lib/order-status";
 import type {
   OrderDetail,
   OrderItem,
@@ -159,18 +160,9 @@ function formatDateInTimeZone(date: Date, timeZone: string) {
   return `${year}-${month}-${day}`;
 }
 
-const ORDER_STATUS_LABELS: Record<number, string> = {
-  0: "Нова",
-  3: "Отказана",
-  4: "Завършена",
-};
-
 function formatOrderStatus(order: OrderSummary | OrderDetail) {
-  const status = order.status;
-  if (status === undefined) return "";
-  const label = ORDER_STATUS_LABELS[status];
-  if (label) return label;
-  return `Status ${status}`;
+  if (order.statusDescription) return order.statusDescription;
+  return describeOrderStatus(order.status);
 }
 
 export function outputOrdersList(orders: OrderSummary[]) {

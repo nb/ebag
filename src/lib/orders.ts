@@ -8,7 +8,7 @@ import type {
 } from "./types";
 import { loadCache, saveCache } from "./config";
 import { requestEbag } from "./client";
-import { logUnknownOrderStatus } from "./order-status";
+import { describeOrderStatus, logUnknownOrderStatus } from "./order-status";
 
 export async function getTimeSlots(
   config: Config,
@@ -63,14 +63,8 @@ function normalizeOrderSummary(entry: Record<string, unknown>): OrderSummary {
   };
   const orderId = entry.encrypted_id ? String(entry.encrypted_id) : "";
   const status = parseNumber(entry.order_status);
-  const statusText = entry.order_status_pharmacy
-    ? String(entry.order_status_pharmacy)
-    : entry.order_status_text
-      ? String(entry.order_status_text)
-      : null;
   logUnknownOrderStatus({
     status,
-    statusText,
     orderId,
     source: "list",
   });
@@ -83,7 +77,6 @@ function normalizeOrderSummary(entry: Record<string, unknown>): OrderSummary {
       ? String(entry.time_slot_display)
       : undefined,
     status,
-    statusText,
     finalAmount: entry.final_amount ? String(entry.final_amount) : undefined,
     finalAmountEur: entry.final_amount_eur
       ? String(entry.final_amount_eur)
@@ -177,23 +170,14 @@ function normalizeOrderDetail(payload: OrderDetailApiResponse): OrderDetail {
 
   const orderId = order.encrypted_id ? String(order.encrypted_id) : "";
   const status = parseNumber(order.order_status);
-  const statusText = order.order_status_pharmacy
-    ? String(order.order_status_pharmacy)
-    : order.order_status_text
-      ? String(order.order_status_text)
-      : order.pay_button_text
-        ? String(order.pay_button_text)
-        : null;
   logUnknownOrderStatus({
     status,
-    statusText,
     orderId,
     source: "detail",
   });
   return {
     id: orderId,
     status,
-    statusText,
     shippingDate: order.shipping_date ? String(order.shipping_date) : undefined,
     timeSlotDisplay: order.timeslot_display
       ? String(order.timeslot_display)
@@ -218,6 +202,25 @@ function normalizeOrderDetail(payload: OrderDetailApiResponse): OrderDetail {
     items: normalizeGroupedItems(payload.grouped_items),
     additionalOrders: additionalOrdersRaw.length
       ? additionalOrdersRaw.map((entry) => normalizeOrderDetail(entry))
+      : undefined,
+  };
+}
+
+function addStatusDescription(order: OrderSummary): OrderSummary {
+  return {
+    ...order,
+    statusDescription: describeOrderStatus(order.status),
+  };
+}
+
+function addDetailStatusDescription(detail: OrderDetail): OrderDetail {
+  return {
+    ...detail,
+    statusDescription: describeOrderStatus(detail.status),
+    additionalOrders: detail.additionalOrders
+      ? detail.additionalOrders.map((entry) =>
+          addDetailStatusDescription(entry),
+        )
       : undefined,
   };
 }
@@ -295,7 +298,7 @@ export async function listOrders(
       previous = payload.previous ?? null;
       const normalized = payload.results.map(normalizeOrderSummary);
       const filtered = filterByDate(normalized, from, to);
-      results.push(...filtered);
+      results.push(...filtered.map(addStatusDescription));
 
       pagesFetched += 1;
       if (!payload.next || pagesFetched >= maxPages) {
@@ -332,7 +335,7 @@ export async function getOrderDetail(
   const cache = loadCache();
   const cached = getCachedOrder(cache, orderId);
   if (cached && cached.status === 4) {
-    return cached.detail;
+    return addDetailStatusDescription(cached.detail);
   }
 
   const result = await requestEbag<OrderDetailApiResponse>(
@@ -341,6 +344,7 @@ export async function getOrderDetail(
     `/orders/${orderId}/details/json`,
   );
   const detail = normalizeOrderDetail(result.data);
+  const detailWithDescription = addDetailStatusDescription(detail);
 
   if (!cache.orders) {
     cache.orders = {};
@@ -354,5 +358,5 @@ export async function getOrderDetail(
     saveCache(cache);
   }
 
-  return detail;
+  return detailWithDescription;
 }
