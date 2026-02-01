@@ -22,14 +22,12 @@ Get the cookie header from your browser and store it:
 ebag login --cookie "<cookie>"
 ```
 
-Notes:
+## Data and storage
 
+- Config is stored in `~/.config/ebag` (override with `EBAG_CONFIG_DIR`).
 - Session data is stored in plain text at `~/.config/ebag/session.json` with owner-only permissions (`0600`).
 - List-based search caches product details in `~/.config/ebag/cache.json` for up to 6 hours.
-- Completed orders may be cached locally for faster access.
-- Unknown order statuses warn on stderr and include a link to file a GitHub issue.
-- API `statusText` values are inconsistent with the website and intentionally ignored (including `--json`).
-- `statusDescription` is the supported status label field in `--json` output and is computed at runtime.
+- Completed orders may be cached locally for faster access, and the order cache is retained indefinitely.
 
 ## Products
 
