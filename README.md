@@ -97,6 +97,11 @@ npm test
 
 ## Changelog
 
+### 0.1.2
+
+- Log unknown order statuses in the lib layer and warn in the CLI
+- Add tests for order status logging and CLI warnings
+
 ### 0.1.1
 
 - Add logging in the config directory

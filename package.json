@@ -1,6 +1,6 @@
 {
   "name": "ebag",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Unofficial CLI for interacting with ebag.bg using cookie-based auth.",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
@@ -15,7 +15,7 @@
     "local-install": "npm run build && TARBALL=$(npm pack --silent) && npm i -g \"$TARBALL\"",
     "prepublishOnly": "npm run build",
     "start": "node dist/cli/index.js",
-    "test:unit": "npm run build && node tests/format.test.mjs && node tests/cookie.test.mjs && node tests/slots.test.mjs && node tests/orders.test.mjs && node tests/search-cache.test.mjs && node tests/log.test.mjs",
+    "test:unit": "npm run build && node tests/format.test.mjs && node tests/cookie.test.mjs && node tests/slots.test.mjs && node tests/orders.test.mjs && node tests/order-status.test.mjs && node tests/cli-warnings.test.mjs && node tests/search-cache.test.mjs && node tests/log.test.mjs",
     "test:e2e": "npm run build && node tests/e2e.mjs",
     "test": "npm run test:unit && npm run test:e2e"
   },
