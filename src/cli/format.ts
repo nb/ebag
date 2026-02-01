@@ -179,6 +179,15 @@ export function outputOrdersList(orders: OrderSummary[]) {
 }
 
 function outputOrderItems(items: OrderItem[]) {
+  const formatQuantity = (quantity?: string) => {
+    if (!quantity) return "";
+    const normalized = quantity.trim().replace(",", ".");
+    if (!normalized) return "";
+    const parsed = Number(normalized);
+    if (!Number.isFinite(parsed)) return normalized;
+    if (Number.isInteger(parsed)) return String(parsed);
+    return String(parsed);
+  };
   const byGroup = new Map<string, OrderItem[]>();
   const ungrouped: OrderItem[] = [];
   for (const item of items) {
@@ -196,7 +205,8 @@ function outputOrderItems(items: OrderItem[]) {
     for (const [group, groupItems] of groupEntries) {
       process.stdout.write(`## ${group}\n`);
       for (const item of groupItems) {
-        const qty = item.quantity ? ` x${item.quantity}` : "";
+        const qtyValue = formatQuantity(item.quantity);
+        const qty = qtyValue ? ` x${qtyValue}` : "";
         const unit = item.unit ? ` (${item.unit})` : "";
         const price = item.priceEur ? `${item.priceEur} EUR` : item.price || "";
         const line = `- ${item.name}${unit}${qty}${price ? ` - ${price}` : ""}`;
@@ -208,7 +218,8 @@ function outputOrderItems(items: OrderItem[]) {
 
   if (ungrouped.length) {
     for (const item of ungrouped) {
-      const qty = item.quantity ? ` x${item.quantity}` : "";
+      const qtyValue = formatQuantity(item.quantity);
+      const qty = qtyValue ? ` x${qtyValue}` : "";
       const unit = item.unit ? ` (${item.unit})` : "";
       const price = item.priceEur ? `${item.priceEur} EUR` : item.price || "";
       const line = `- ${item.name}${unit}${qty}${price ? ` - ${price}` : ""}`;

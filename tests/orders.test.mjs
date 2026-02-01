@@ -73,5 +73,7 @@ const detailOutput = captureOutput(() =>
 assert.match(detailOutput, /Status: Отказана/);
 assert.match(detailOutput, /Address: София, кв\. Център, ул\. Тест 1/);
 assert.match(detailOutput, /Тест продукт/);
+assert.match(detailOutput, /x1\b/);
+assert.doesNotMatch(detailOutput, /x1\.000/);
 
 console.log("orders.test ok");
