@@ -375,7 +375,7 @@ async function main() {
   cart
     .command("update")
     .argument("<productId>", "Product ID")
-    .option("--qty <n>", "Quantity", "1")
+    .requiredOption("--qty <n>", "Quantity")
     .action(async (productId, options) => {
       const config = loadConfig();
       const session = requireSessionCookie();

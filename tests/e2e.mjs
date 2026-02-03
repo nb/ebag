@@ -143,6 +143,16 @@ async function main() {
     throw new Error("Cart add did not include product.");
   }
 
+  console.log("e2e: cart update missing --qty");
+  try {
+    await runCli(["cart", "update", String(productId)]);
+    throw new Error("Expected cart update without --qty to fail.");
+  } catch (err) {
+    if (!err.stderr?.includes("required option")) {
+      throw new Error("Expected required option error for cart update without --qty.");
+    }
+  }
+
   console.log("e2e: cart update");
   await runCli(["cart", "update", String(productId), "--qty", "2"]);
   console.log("e2e: cart validate update");
