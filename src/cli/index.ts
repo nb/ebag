@@ -409,13 +409,18 @@ async function main() {
       const listItems = items
         .map((item) => {
           const entry = item as {
-            product?: { id?: number; name?: string };
+            product?: {
+              id?: number;
+              name?: string;
+              expected_supply_date?: string;
+            };
             product_id?: number;
             productId?: number;
             id?: number;
             name?: string;
             quantity?: number;
             qty?: number;
+            available?: boolean;
           };
           const id =
             entry.product?.id ??
@@ -425,9 +430,21 @@ async function main() {
           const name = entry.product?.name ?? entry.name ?? "Unknown";
           const count = entry.quantity ?? entry.qty;
           if (!id) return null;
-          return { id: Number(id), name, count };
+          return {
+            id: Number(id),
+            name,
+            count,
+            available: entry.available,
+            expectedSupplyDate: entry.product?.expected_supply_date,
+          };
         })
-        .filter(Boolean) as { id: number; name: string; count?: number }[];
+        .filter(Boolean) as {
+          id: number;
+          name: string;
+          count?: number;
+          available?: boolean;
+          expectedSupplyDate?: string;
+        }[];
       if (listItems.length) {
         outputList(listItems);
       } else {

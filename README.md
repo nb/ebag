@@ -97,6 +97,10 @@ npm test
 
 ## Changelog
 
+### 0.1.4
+
+- Show out-of-stock status and expected restock date in cart output
+
 ### 0.1.3
 
 - Require `--qty` for cart update command

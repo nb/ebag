@@ -40,11 +40,23 @@ export function outputProducts(products: ProductSummary[]) {
 }
 
 export function outputList(
-  items: { id: number; name: string; count?: number }[],
+  items: {
+    id: number;
+    name: string;
+    count?: number;
+    available?: boolean;
+    expectedSupplyDate?: string;
+  }[],
 ) {
   for (const item of items) {
     const count = item.count !== undefined ? ` (${item.count})` : "";
-    process.stdout.write(`${item.id} ${item.name}${count}\n`);
+    let suffix = "";
+    if (item.available === false) {
+      suffix = item.expectedSupplyDate
+        ? ` [out of stock, expected ${item.expectedSupplyDate}]`
+        : " [out of stock, no restock date]";
+    }
+    process.stdout.write(`${item.id} ${item.name}${count}${suffix}\n`);
   }
 }
 

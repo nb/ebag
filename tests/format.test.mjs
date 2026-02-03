@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
-import { formatHeading, outputProductDetail } from "../dist/cli/format.js";
+import {
+  formatHeading,
+  outputList,
+  outputProductDetail,
+} from "../dist/cli/format.js";
 
 function captureOutput(fn) {
   let output = "";
@@ -49,6 +53,46 @@ try {
   } else {
     process.env.NO_COLOR = originalNoColor;
   }
+}
+
+// outputList: available item has no suffix
+{
+  const out = captureOutput(() =>
+    outputList([{ id: 1, name: "Milk", count: 2, available: true }]),
+  );
+  assert.equal(out, "1 Milk (2)\n");
+}
+
+// outputList: out of stock with expected date
+{
+  const out = captureOutput(() =>
+    outputList([
+      {
+        id: 2,
+        name: "Tomatoes",
+        count: 1,
+        available: false,
+        expectedSupplyDate: "2026-02-07",
+      },
+    ]),
+  );
+  assert.equal(out, "2 Tomatoes (1) [out of stock, expected 2026-02-07]\n");
+}
+
+// outputList: out of stock without expected date
+{
+  const out = captureOutput(() =>
+    outputList([{ id: 3, name: "Bread", count: 1, available: false }]),
+  );
+  assert.equal(out, "3 Bread (1) [out of stock, no restock date]\n");
+}
+
+// outputList: availability omitted (e.g. list/search callers) — no suffix
+{
+  const out = captureOutput(() =>
+    outputList([{ id: 4, name: "Cheese", count: 0.5 }]),
+  );
+  assert.equal(out, "4 Cheese (0.5)\n");
 }
 
 console.log("format.test ok");
