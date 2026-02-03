@@ -97,6 +97,10 @@ npm test
 
 ## Changelog
 
+### 0.1.3
+
+- Require `--qty` for cart update command
+
 ### 0.1.2
 
 - Log unknown order statuses in the lib layer and warn in the CLI
