@@ -97,6 +97,11 @@ npm test
 
 ## Changelog
 
+### 0.1.5
+
+- Fix order totals to use paid amounts across primary and additional orders without double-counting tip
+- Stabilize e2e cart/list mutation flow by retrying with other search candidates when the first product is unavailable
+
 ### 0.1.4
 
 - Show out-of-stock status and expected restock date in cart output
