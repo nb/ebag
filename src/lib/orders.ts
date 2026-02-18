@@ -1,6 +1,7 @@
 import type {
   Cache,
   Config,
+  OrderAmount,
   OrderDetail,
   OrderItem,
   OrderSummary,
@@ -38,6 +39,14 @@ type OrderDetailApiResponse = {
   addition_details?: Record<string, unknown>;
 };
 
+function toOrderAmount(
+  value?: string,
+  currency?: "EUR",
+): OrderAmount | undefined {
+  if (!value) return undefined;
+  return currency ? { value, currency } : { value };
+}
+
 function normalizeDate(value?: string | null) {
   if (!value) return undefined;
   const isoMatch = value.match(/(\d{4})-(\d{2})-(\d{2})/);
@@ -50,6 +59,115 @@ function normalizeDate(value?: string | null) {
   if (Number.isNaN(parsed.getTime())) return undefined;
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`;
+}
+
+function parseAmountToCents(value?: string) {
+  if (!value) return undefined;
+  const normalized = value.trim().replace(",", ".");
+  if (!normalized) return undefined;
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed)) return undefined;
+  return Math.round(parsed * 100);
+}
+
+function formatCents(cents: number) {
+  return (cents / 100).toFixed(2);
+}
+
+function flattenOrderDetails(detail: OrderDetail): OrderDetail[] {
+  const additional = detail.additionalOrders || [];
+  const flattened = [detail];
+  for (const entry of additional) {
+    flattened.push(...flattenOrderDetails(entry));
+  }
+  return flattened;
+}
+
+function getOrderPaidCents(order: OrderDetail, currency: "eur" | "local") {
+  return currency === "eur"
+    ? parseAmountToCents(order.totals.totalPaidEur ?? order.totals.totalEur)
+    : parseAmountToCents(order.totals.totalPaid ?? order.totals.total);
+}
+
+export function resolveOrderAmount(
+  order: OrderSummary | OrderDetail,
+): OrderAmount | undefined {
+  if ("totalPaidAllOrdersEur" in order && order.totalPaidAllOrdersEur) {
+    return toOrderAmount(order.totalPaidAllOrdersEur, "EUR");
+  }
+  if ("totalPaidAllOrders" in order && order.totalPaidAllOrders) {
+    return toOrderAmount(order.totalPaidAllOrders);
+  }
+  if ("finalAmountEur" in order && order.finalAmountEur) {
+    return toOrderAmount(order.finalAmountEur, "EUR");
+  }
+  if ("finalAmount" in order && order.finalAmount) {
+    return toOrderAmount(order.finalAmount);
+  }
+  if ("totals" in order) {
+    if (order.totals.totalPaidAllOrdersEur) {
+      return toOrderAmount(order.totals.totalPaidAllOrdersEur, "EUR");
+    }
+    if (order.totals.totalPaidAllOrders) {
+      return toOrderAmount(order.totals.totalPaidAllOrders);
+    }
+    if (order.totals.totalPaidEur) {
+      return toOrderAmount(order.totals.totalPaidEur, "EUR");
+    }
+    if (order.totals.totalEur) {
+      return toOrderAmount(order.totals.totalEur, "EUR");
+    }
+    if (order.totals.totalPaid) {
+      return toOrderAmount(order.totals.totalPaid);
+    }
+    if (order.totals.total) {
+      return toOrderAmount(order.totals.total);
+    }
+  }
+  return undefined;
+}
+
+export function resolveCombinedOrderDetailAmount(
+  detail: OrderDetail,
+): OrderAmount | undefined {
+  if (detail.totals.totalPaidAllOrdersEur) {
+    return toOrderAmount(detail.totals.totalPaidAllOrdersEur, "EUR");
+  }
+  if (detail.totals.totalPaidAllOrders) {
+    return toOrderAmount(detail.totals.totalPaidAllOrders);
+  }
+
+  const orders = flattenOrderDetails(detail);
+
+  let eurTotal = 0;
+  let hasEur = true;
+  for (const order of orders) {
+    const cents = getOrderPaidCents(order, "eur");
+    if (cents === undefined) {
+      hasEur = false;
+      break;
+    }
+    eurTotal += cents;
+  }
+  if (hasEur) {
+    return toOrderAmount(formatCents(eurTotal), "EUR");
+  }
+
+  let localTotal = 0;
+  let hasLocal = true;
+  for (const order of orders) {
+    const cents = getOrderPaidCents(order, "local");
+    if (cents === undefined) {
+      hasLocal = false;
+      break;
+    }
+    localTotal += cents;
+  }
+  if (hasLocal) {
+    return toOrderAmount(formatCents(localTotal));
+  }
+
+  return undefined;
 }
 
 function normalizeOrderSummary(entry: Record<string, unknown>): OrderSummary {
@@ -80,6 +198,12 @@ function normalizeOrderSummary(entry: Record<string, unknown>): OrderSummary {
     finalAmount: entry.final_amount ? String(entry.final_amount) : undefined,
     finalAmountEur: entry.final_amount_eur
       ? String(entry.final_amount_eur)
+      : undefined,
+    totalPaidAllOrders: entry.total_price_paid_all_orders
+      ? String(entry.total_price_paid_all_orders)
+      : undefined,
+    totalPaidAllOrdersEur: entry.total_price_paid_all_orders_eur
+      ? String(entry.total_price_paid_all_orders_eur)
       : undefined,
     additionalOrdersCount:
       typeof entry.additional_orders_count === "number"
@@ -193,6 +317,12 @@ function normalizeOrderDetail(payload: OrderDetailApiResponse): OrderDetail {
         : undefined,
       totalPaidEur: order.total_price_paid_eur
         ? String(order.total_price_paid_eur)
+        : undefined,
+      totalPaidAllOrders: order.total_price_paid_all_orders
+        ? String(order.total_price_paid_all_orders)
+        : undefined,
+      totalPaidAllOrdersEur: order.total_price_paid_all_orders_eur
+        ? String(order.total_price_paid_all_orders_eur)
         : undefined,
       discount: order.discount ? String(order.discount) : undefined,
       discountEur: order.discount_eur ? String(order.discount_eur) : undefined,

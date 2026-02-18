@@ -92,6 +92,8 @@ export type OrderSummary = {
   statusDescription?: string;
   finalAmount?: string;
   finalAmountEur?: string;
+  totalPaidAllOrders?: string;
+  totalPaidAllOrdersEur?: string;
   additionalOrdersCount?: number;
   phone?: string;
 };
@@ -108,6 +110,11 @@ export type OrderItem = {
   group?: string;
 };
 
+export type OrderAmount = {
+  value: string;
+  currency?: "EUR";
+};
+
 export type OrderDetail = {
   id: string;
   status?: number;
@@ -120,6 +127,8 @@ export type OrderDetail = {
     totalEur?: string;
     totalPaid?: string;
     totalPaidEur?: string;
+    totalPaidAllOrders?: string;
+    totalPaidAllOrdersEur?: string;
     discount?: string;
     discountEur?: string;
     tip?: string;

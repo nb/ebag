@@ -21,6 +21,11 @@
   - `index.ts`: command routing and error handling.
   - `format.ts`: human-readable output formatting.
 
+## Code Boundaries
+
+- Keep business logic in `src/lib/*` and keep `src/cli/format.ts` focused on presentation/output only.
+- Put shared, cross-module contract types in `src/lib/types.ts` and keep file-private helper types local.
+
 ## Data and Storage
 
 - Config: `~/.config/ebag/config.json`

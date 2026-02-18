@@ -1,4 +1,8 @@
 import { describeOrderStatus } from "../lib/order-status";
+import {
+  resolveCombinedOrderDetailAmount,
+  resolveOrderAmount,
+} from "../lib/orders";
 import type {
   OrderDetail,
   OrderItem,
@@ -52,9 +56,13 @@ export function outputList(
     const count = item.count !== undefined ? ` (${item.count})` : "";
     let suffix = "";
     if (item.available === false) {
-      suffix = item.expectedSupplyDate
-        ? ` [out of stock, expected ${item.expectedSupplyDate}]`
-        : " [out of stock, no restock date]";
+      const text = item.expectedSupplyDate
+        ? `[out of stock, expected ${item.expectedSupplyDate}]`
+        : "[out of stock, no restock date]";
+      suffix =
+        process.stdout.isTTY && !process.env.NO_COLOR
+          ? ` \u001b[33m${text}\u001b[0m`
+          : ` ${text}`;
     }
     process.stdout.write(`${item.id} ${item.name}${count}${suffix}\n`);
   }
@@ -142,20 +150,11 @@ export function outputProductDetail(data: Record<string, unknown>) {
   process.stdout.write(`${output}\n`);
 }
 
-function formatOrderAmount(order: OrderSummary | OrderDetail) {
-  if ("finalAmountEur" in order && order.finalAmountEur) {
-    return `${order.finalAmountEur} EUR`;
-  }
-  if ("finalAmount" in order && order.finalAmount) {
-    return order.finalAmount;
-  }
-  if ("totals" in order) {
-    if (order.totals.totalPaidEur) return `${order.totals.totalPaidEur} EUR`;
-    if (order.totals.totalEur) return `${order.totals.totalEur} EUR`;
-    if (order.totals.totalPaid) return order.totals.totalPaid;
-    if (order.totals.total) return order.totals.total;
-  }
-  return "";
+function formatOrderAmountText(
+  amount?: { value: string; currency?: "EUR" },
+) {
+  if (!amount) return "";
+  return amount.currency ? `${amount.value} ${amount.currency}` : amount.value;
 }
 
 function formatDateInTimeZone(date: Date, timeZone: string) {
@@ -182,7 +181,7 @@ export function outputOrdersList(orders: OrderSummary[]) {
     const date = order.shippingDate ? formatDate(order.shippingDate) : "";
     const slot = order.timeSlotDisplay || "";
     const status = formatOrderStatus(order);
-    const total = formatOrderAmount(order);
+    const total = formatOrderAmountText(resolveOrderAmount(order));
     const parts = [order.id, date, slot].filter(Boolean);
     const suffix = [status, total].filter(Boolean).join(" - ");
     const line = `${parts.join(" ")}${suffix ? ` - ${suffix}` : ""}`;
@@ -246,7 +245,9 @@ export function outputOrderDetail(detail: OrderDetail) {
   const status = formatOrderStatus(detail);
   const date = detail.shippingDate ? formatDate(detail.shippingDate) : "";
   const address = detail.address || "";
-  const total = formatOrderAmount(detail);
+  const total = formatOrderAmountText(
+    resolveCombinedOrderDetailAmount(detail) || resolveOrderAmount(detail),
+  );
   const kvPairs = [
     ["ID", detail.id],
     ["Status", status],
@@ -286,7 +287,10 @@ export function outputOrderDetail(detail: OrderDetail) {
     process.stdout.write("# Additional Orders\n");
     for (const additional of detail.additionalOrders) {
       process.stdout.write(`## Order ${additional.id}\n`);
-      const additionalTotal = formatOrderAmount(additional);
+      const additionalTotal = formatOrderAmountText(
+        resolveCombinedOrderDetailAmount(additional) ||
+          resolveOrderAmount(additional),
+      );
       if (additionalTotal) {
         process.stdout.write(`Total: ${additionalTotal}\n`);
       }

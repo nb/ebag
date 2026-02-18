@@ -95,4 +95,42 @@ try {
   assert.equal(out, "4 Cheese (0.5)\n");
 }
 
+// outputList: out of stock renders red on TTY
+{
+  const origIsTTY = process.stdout.isTTY;
+  const origNoColor = process.env.NO_COLOR;
+  try {
+    Object.defineProperty(process.stdout, "isTTY", {
+      value: true,
+      configurable: true,
+    });
+    delete process.env.NO_COLOR;
+    const out = captureOutput(() =>
+      outputList([
+        {
+          id: 5,
+          name: "Eggs",
+          count: 1,
+          available: false,
+          expectedSupplyDate: "2026-03-01",
+        },
+      ]),
+    );
+    assert.equal(
+      out,
+      "5 Eggs (1) \u001b[33m[out of stock, expected 2026-03-01]\u001b[0m\n",
+    );
+  } finally {
+    Object.defineProperty(process.stdout, "isTTY", {
+      value: origIsTTY,
+      configurable: true,
+    });
+    if (origNoColor === undefined) {
+      delete process.env.NO_COLOR;
+    } else {
+      process.env.NO_COLOR = origNoColor;
+    }
+  }
+}
+
 console.log("format.test ok");
