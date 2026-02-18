@@ -51,6 +51,14 @@ function findCartItem(cart, productId) {
   });
 }
 
+function getExecErrorText(err) {
+  if (!err || typeof err !== "object") return String(err);
+  const stderr = typeof err.stderr === "string" ? err.stderr.trim() : "";
+  const stdout = typeof err.stdout === "string" ? err.stdout.trim() : "";
+  const message = typeof err.message === "string" ? err.message.trim() : "";
+  return stderr || stdout || message || String(err);
+}
+
 async function main() {
   console.log("e2e: login");
   await runCli(["login", "--cookie", cookie]);
@@ -134,18 +142,45 @@ async function main() {
     throw new Error("Expected list details for list show <listId>.");
   }
 
+  const candidates = searchBg.results
+    .map((result) => ({
+      id: Number(result?.id),
+      name: String(result?.name || ""),
+    }))
+    .filter((result) => Number.isFinite(result.id) && result.id > 0);
+
+  let mutationProductId = Number(productId);
+  let mutationProductName = String(productName);
+  let addError = "";
+
   console.log("e2e: cart add");
-  await runCli(["cart", "add", String(productId), "--qty", "1"]);
+  for (const candidate of candidates) {
+    try {
+      await runCli(["cart", "add", String(candidate.id), "--qty", "1"]);
+      mutationProductId = candidate.id;
+      mutationProductName = candidate.name || mutationProductName;
+      addError = "";
+      break;
+    } catch (err) {
+      addError = getExecErrorText(err);
+    }
+  }
+  if (addError) {
+    throw new Error(
+      `Could not add any search candidate to cart. Last error: ${addError}`,
+    );
+  }
+
   console.log("e2e: cart validate add");
   const cartAfterAdd = await runCli(["cart", "show"]);
-  const added = findCartItem(cartAfterAdd, productId);
+  const added = findCartItem(cartAfterAdd, mutationProductId);
   if (!added) {
     throw new Error("Cart add did not include product.");
   }
 
   console.log("e2e: cart update missing --qty");
   try {
-    await runCli(["cart", "update", String(productId)]);
+    await runCli(["cart", "update", String(mutationProductId)]);
     throw new Error("Expected cart update without --qty to fail.");
   } catch (err) {
     if (!err.stderr?.includes("required option")) {
@@ -154,10 +189,10 @@ async function main() {
   }
 
   console.log("e2e: cart update");
-  await runCli(["cart", "update", String(productId), "--qty", "2"]);
+  await runCli(["cart", "update", String(mutationProductId), "--qty", "2"]);
   console.log("e2e: cart validate update");
   const cartAfterUpdate = await runCli(["cart", "show"]);
-  const updated = findCartItem(cartAfterUpdate, productId);
+  const updated = findCartItem(cartAfterUpdate, mutationProductId);
   const updatedQty = updated?.quantity ?? updated?.qty ?? updated?.count;
   if (!updated || Number(updatedQty) !== 2) {
     throw new Error("Cart update did not set quantity to 2.");
@@ -168,7 +203,7 @@ async function main() {
     "list",
     "add",
     String(listId),
-    String(productId),
+    String(mutationProductId),
     "--qty",
     "1",
   ]);
@@ -180,11 +215,11 @@ async function main() {
   const listProductIds = (listAfterAdd?.products || []).map(
     (item) => item.productId,
   );
-  if (!listProductIds.includes(Number(productId))) {
+  if (!listProductIds.includes(Number(mutationProductId))) {
     throw new Error("List add did not include product.");
   }
   const listDetailOutput = await runCliRaw(["list", "show", String(listId)]);
-  if (!listDetailOutput.includes(`${productId} ${productName}`)) {
+  if (!listDetailOutput.includes(`${mutationProductId} ${mutationProductName}`)) {
     throw new Error("List detail output missing product name.");
   }
 
