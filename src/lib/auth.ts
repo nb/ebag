@@ -12,5 +12,6 @@ export function getLoginInstructions() {
 
 export async function validateSession(config: Config, session: Session) {
   const result = await requestEbag(config, session, "/user/json");
-  return result.data;
+  const data = result.data as Record<string, unknown>;
+  return (data.user as Record<string, unknown>) || data;
 }
