@@ -11,7 +11,21 @@ export function getLoginInstructions() {
 }
 
 export async function validateSession(config: Config, session: Session) {
-  const result = await requestEbag(config, session, "/user/json");
-  const data = result.data as Record<string, unknown>;
-  return (data.user as Record<string, unknown>) || data;
+  const result = await requestEbag<Record<string, unknown> | null>(
+    config,
+    session,
+    "/user/json",
+  );
+  const data = result.data;
+  const user =
+    (data?.user as Record<string, unknown> | null | undefined) ?? data;
+  if (user?.is_authenticated !== true) {
+    throw Object.assign(
+      new Error(
+        'Session is not authenticated. Copy a fresh Cookie header from your browser and run `ebag login --cookie "<cookie>"`.',
+      ),
+      { status: 401 },
+    );
+  }
+  return user;
 }

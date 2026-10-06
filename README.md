@@ -22,6 +22,9 @@ Get the cookie header from your browser and store it:
 ebag login --cookie "<cookie>"
 ```
 
+Use `ebag status` to check whether the saved cookie still authenticates. If it
+reports logged out, copy a fresh Cookie header from your browser and log in again.
+
 ## Data and storage
 
 - Config is stored in `~/.config/ebag` (override with `EBAG_CONFIG_DIR`).
@@ -36,6 +39,9 @@ ebag product search "lindt"
 ebag product search "lindt" --json
 ebag product show 5128
 ```
+
+Product search works without a valid login. Matches from your lists are prioritized
+when the saved session can access them; otherwise, search uses the public catalog.
 
 ## Delivery slots
 
@@ -96,6 +102,11 @@ npm test
 ```
 
 ## Changelog
+
+### 0.1.6-beta
+
+- Validate authentication for both flat and nested user responses
+- Continue catalog search when the saved session cannot access lists
 
 ### 0.1.5
 

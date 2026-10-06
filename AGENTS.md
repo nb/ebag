@@ -41,6 +41,7 @@
 
 - Manual cookie import from browser network request headers.
 - Session validation uses `GET https://www.ebag.bg/user/json`.
+- Unwrap `user` when present, then check `is_authenticated === true`; anonymous sessions also receive HTTP 200.
 - CSRF handling:
   - Non-GET requests add `x-csrftoken` if `csrftoken` is present in cookies.
   - `origin` and `referer` headers are set for cart/list mutations.
@@ -53,6 +54,8 @@
 3. Filter local list products by query string.
 4. Query Algolia and normalize hits.
 5. Merge results (list products first), remove duplicates, then limit.
+
+If list retrieval returns 401 or 403, skip list matches and search Algolia.
 
 Algolia endpoint:
 

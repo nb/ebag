@@ -1,6 +1,7 @@
 import type {
   Cache,
   Config,
+  ListSummary,
   ProductCacheEntry,
   ProductSummary,
   SearchResult,
@@ -159,7 +160,16 @@ async function searchInLists(
     return [];
   }
 
-  const lists = await getLists(config, session);
+  let lists: ListSummary[];
+  try {
+    lists = await getLists(config, session);
+  } catch (err) {
+    const status = (err as { status?: number }).status;
+    if (status === 401 || status === 403) {
+      return [];
+    }
+    throw err;
+  }
   const productIdToLists = new Map<number, string[]>();
 
   for (const list of lists) {
