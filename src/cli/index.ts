@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
-import { Command } from "commander";
+import type { Command } from "commander";
 import { addToCart, getCart, updateCart } from "../lib/cart";
 import { getLoginInstructions, validateSession } from "../lib/auth";
 import { normalizeCookieInput, validateCookieInput } from "../lib/cookies";
@@ -52,6 +52,7 @@ function formatError(err: unknown) {
 }
 
 async function main() {
+  const { Command } = await import("commander");
   const program = new Command();
   let lastCommand = "unknown";
   let lastArgs: string[] = [];
@@ -439,12 +440,12 @@ async function main() {
           };
         })
         .filter(Boolean) as {
-          id: number;
-          name: string;
-          count?: number;
-          available?: boolean;
-          expectedSupplyDate?: string;
-        }[];
+        id: number;
+        name: string;
+        count?: number;
+        available?: boolean;
+        expectedSupplyDate?: string;
+      }[];
       if (listItems.length) {
         outputList(listItems);
       } else {
@@ -507,8 +508,7 @@ async function main() {
                 qty?: number;
               };
               const product = entry.product as
-                | { id?: number; name?: string }
-                | undefined;
+                { id?: number; name?: string } | undefined;
               const id =
                 product?.id ?? entry.product_id ?? entry.productId ?? entry.id;
               const name = product?.name ?? entry.name ?? "Unknown";

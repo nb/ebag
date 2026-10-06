@@ -38,19 +38,19 @@
   "bugs": "https://github.com/nb/ebag/issues",
   "homepage": "https://github.com/nb/ebag#readme",
   "engines": {
-    "node": ">=18"
+    "node": ">=22.12.0"
   },
   "type": "commonjs",
   "files": [
     "dist"
   ],
   "devDependencies": {
-    "@types/node": "^25.0.9",
-    "playwright": "^1.57.0",
-    "prettier": "^3.8.1",
-    "typescript": "^5.9.3"
+    "@types/node": "^22.20.5",
+    "playwright": "^1.63.0",
+    "prettier": "^3.9.9",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
-    "commander": "^14.0.2"
+    "commander": "^15.0.0"
   }
 }

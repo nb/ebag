@@ -4,6 +4,8 @@ CLI for interacting with ebag.bg (unofficial).
 
 ## Installation
 
+Requires Node.js 22.12.0 or newer.
+
 ```bash
 npm install -g ebag
 ```
@@ -105,6 +107,7 @@ npm test
 
 ### 0.1.6-beta
 
+- Require Node.js 22.12.0 or newer and update dependencies
 - Validate authentication for both flat and nested user responses
 - Continue catalog search when the saved session cannot access lists
 
