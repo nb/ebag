@@ -105,7 +105,7 @@ npm test
 
 ## Changelog
 
-### 0.1.6-beta
+### 0.1.6
 
 - Require Node.js 22.12.0 or newer and update dependencies
 - Validate authentication for both flat and nested user responses
