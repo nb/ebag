@@ -103,6 +103,17 @@ npm run test:e2e
 npm test
 ```
 
+### Package checks
+
+`npm pack` builds the CLI and checks the package file list and common credential
+patterns before creating a tarball. Only compiled JavaScript, TypeScript
+declarations, and package documentation are included.
+
+```bash
+npm run test:package
+npm pack
+```
+
 ## Changelog
 
 ### 0.1.6

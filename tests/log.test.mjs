@@ -80,6 +80,36 @@ function testAppendLogRedaction() {
   expect(logText.includes('event="command.start"'), "log should include event");
 }
 
+function testCookieArgumentsAndPermissions() {
+  const logPath = resetLog();
+  const singleCookie = "auth=single-secret-value";
+  appendLog({
+    event: "command.start",
+    args: ["login", "--cookie", singleCookie],
+  });
+  expect((fs.statSync(logPath).mode & 0o777) === 0o600, "log is owner-only");
+  fs.chmodSync(logPath, 0o644);
+  appendLog({
+    event: "command.start",
+    args: ["login", `--cookie=${singleCookie}`],
+  });
+  appendLog({
+    event: "command.start",
+    args: ["login", "--cookie", "invalid-secret"],
+  });
+  const text = fs.readFileSync(logPath, "utf8");
+  expect(!text.includes(singleCookie), "single cookie argument is redacted");
+  expect(
+    !text.includes("invalid-secret"),
+    "invalid cookie argument is redacted",
+  );
+  expect(
+    (fs.statSync(logPath).mode & 0o777) === 0o600,
+    "existing log is owner-only",
+  );
+}
+
 testSanitizeEntry();
 testAppendLogRedaction();
+testCookieArgumentsAndPermissions();
 console.log("log.test ok");

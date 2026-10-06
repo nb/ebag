@@ -13,7 +13,7 @@ const DEFAULT_CONFIG: Config = {
 };
 
 function ensureDir(dir: string) {
-  fs.mkdirSync(dir, { recursive: true });
+  fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
 }
 
 export function getConfigDir() {
@@ -35,15 +35,14 @@ function readJsonFile<T>(filePath: string, fallback: T): T {
 
 function writeJsonFile<T>(filePath: string, data: T) {
   ensureDir(path.dirname(filePath));
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
-}
-
-function writeSessionFile<T>(filePath: string, data: T) {
-  ensureDir(path.dirname(filePath));
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), {
-    encoding: "utf8",
-    mode: 0o600,
-  });
+  const fd = fs.openSync(filePath, "w", 0o600);
+  try {
+    // The creation mode does not change permissions on an existing file.
+    fs.fchmodSync(fd, 0o600);
+    fs.writeFileSync(fd, JSON.stringify(data, null, 2), "utf8");
+  } finally {
+    fs.closeSync(fd);
+  }
 }
 
 export function getConfigPath() {
@@ -89,7 +88,7 @@ export function loadSession(): Session {
 }
 
 export function saveSession(session: Session) {
-  writeSessionFile(getSessionPath(), session);
+  writeJsonFile(getSessionPath(), session);
 }
 
 export function loadCache(): Cache {

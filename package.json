@@ -1,6 +1,6 @@
 {
   "name": "ebag",
-  "version": "0.1.6",
+  "version": "0.1.7-dev",
   "description": "Unofficial CLI for interacting with ebag.bg using cookie-based auth.",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
@@ -13,11 +13,13 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "local-install": "npm run build && TARBALL=$(npm pack --silent) && npm i -g \"$TARBALL\"",
+    "prepack": "npm run build && node scripts/check-package.mjs",
     "prepublishOnly": "npm run build",
     "start": "node dist/cli/index.js",
-    "test:unit": "npm run build && node tests/format.test.mjs && node tests/cookie.test.mjs && node tests/auth.test.mjs && node tests/slots.test.mjs && node tests/orders.test.mjs && node tests/orders-cache.test.mjs && node tests/order-status.test.mjs && node tests/cli-warnings.test.mjs && node tests/search-cache.test.mjs && node tests/search.test.mjs && node tests/log.test.mjs",
+    "test:unit": "npm run build && node tests/format.test.mjs && node tests/config.test.mjs && node tests/cookie.test.mjs && node tests/auth.test.mjs && node tests/slots.test.mjs && node tests/orders.test.mjs && node tests/orders-cache.test.mjs && node tests/order-status.test.mjs && node tests/cli-warnings.test.mjs && node tests/search-cache.test.mjs && node tests/search.test.mjs && node tests/log.test.mjs",
+    "test:package": "node tests/package.test.mjs",
     "test:e2e": "npm run build && node tests/e2e.mjs",
-    "test": "npm run test:unit && npm run test:e2e"
+    "test": "npm run test:unit && npm run test:package && npm run test:e2e"
   },
   "keywords": [
     "ebag",
@@ -42,7 +44,10 @@
   },
   "type": "commonjs",
   "files": [
-    "dist"
+    "dist/cli/*.js",
+    "dist/cli/*.d.ts",
+    "dist/lib/*.js",
+    "dist/lib/*.d.ts"
   ],
   "devDependencies": {
     "@types/node": "^22.20.5",

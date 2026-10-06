@@ -11,7 +11,7 @@ export type LogEntry = {
 const SENSITIVE_KEYS = ["cookie", "authorization", "x-csrftoken"];
 
 function ensureDir(dir: string) {
-  fs.mkdirSync(dir, { recursive: true });
+  fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
 }
 
 function isSensitiveKey(key: string) {
@@ -53,7 +53,14 @@ function sanitizeValue(value: unknown, seen: WeakSet<object>): unknown {
   }
   seen.add(value);
   if (Array.isArray(value)) {
-    return value.map((item) => sanitizeValue(item, seen));
+    return value.map((item, index) => {
+      // Redact by option position even for single or malformed cookies.
+      if (value[index - 1] === "--cookie") return "[redacted]";
+      if (typeof item === "string" && item.startsWith("--cookie=")) {
+        return "--cookie=[redacted]";
+      }
+      return sanitizeValue(item, seen);
+    });
   }
   const output: Record<string, unknown> = {};
   for (const [key, entry] of Object.entries(value)) {
@@ -117,7 +124,13 @@ export function appendLog(entry: LogEntry) {
     const logPath = getLogPath();
     ensureDir(path.dirname(logPath));
     const line = formatEntry(sanitizeEntry(entry));
-    fs.appendFileSync(logPath, `${line}\n`, "utf8");
+    const fd = fs.openSync(logPath, "a", 0o600);
+    try {
+      fs.fchmodSync(fd, 0o600);
+      fs.writeFileSync(fd, `${line}\n`, "utf8");
+    } finally {
+      fs.closeSync(fd);
+    }
   } catch {
     // Logging must never crash the CLI.
   }
